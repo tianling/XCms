@@ -23,6 +23,12 @@ class Environment{
 	public $application;
 	
 	/**
+	 * the application's base path
+	 * @var string
+	 */
+	public $basePath = '';
+	
+	/**
 	 * @var string
 	 */
 	protected $_applicationClass;
@@ -64,7 +70,7 @@ class Environment{
 	/**
 	 * @param int $configType
 	 */
-	public function __construct($configType,$applicationClass = 'CWebApplication',$yiiType = 'yii'){
+	public function __construct($configType,$applicationClass = 'CmsApplication',$yiiType = 'yii'){
 		$this->_configType = $configType;
 		$this->_yiiType = $yiiType;
 		$this->_applicationClass = $applicationClass;
@@ -75,6 +81,7 @@ class Environment{
 	 */
 	public function prepare(){
 		$this->yiiInclude();
+		Yii::import('cms.components.CmsApplication');
 		Yii::import('cms.components.environment.*');
 		$this->_setConfig();
 	}
@@ -141,7 +148,7 @@ class Environment{
 	
 	private function _setConfig(){
 		$class = in_array($this->_configType,$this->_configMap) ? $this->_configType : self::BAISC;
-		$this->_config = new $class();
+		$this->_config = new $class($this);
 		$this->_config->init();
 	}
 	
@@ -150,7 +157,7 @@ class Environment{
 	 */
 	public function yiiInclude(){
 		if ( isset($this->_yiiMap[$this->_yiiType]) ){
-			require $this->_yiiMap[$this->_yiiType].'.php';
+			require YII_DIR.$this->_yiiMap[$this->_yiiType].'.php';
 			Yii::setPathOfAlias('cms',CORE_DIR);
 		}else{
 			throw new Exception('yii did not included.please check "YII_DIR" in cms.php.');

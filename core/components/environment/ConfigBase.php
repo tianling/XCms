@@ -20,13 +20,42 @@ class ConfigBase{
 	 */
 	public $traceLevel;
 	
+	/**
+	 * @var Environment
+	 */
+	protected $_owner;
+	
+	/**
+	 * @var string
+	 */
+	protected $_basePath;
+	
+	/**
+	 * @var array
+	 */
+	private $_config = array();
+	
+	/**
+	 * @param Environment $owner
+	 */
+	public function __construct($owner){
+		$this->owner = $owner;
+		$this->_basePath = $owner->basePath;
+	}
+	
 	public function init(){
 		$this->debug = false;
 		$this->traceLevel = 0;
 	}
 	
 	public function getConfig(){
-		return array_merge_recursive($this->base(),$this->merge());
+		if ( empty($this->_config) ){
+			$this->_config = array_merge_recursive($this->base(),$this->merge());
+			if ( $this->_basePath !== '' ){
+				$this->_config['basePath'] = $this->_basePath;
+			}
+		}
+		return $this->_config;
 	}
 	
 	public function base(){
@@ -37,7 +66,7 @@ class ConfigBase{
 			'sourceLanguage' => 'zh_cn',
 			'language' => 'zh_cn',
 			
-			'defaultController' => 'index',
+			'defaultController' => 'site',
 			// Preloading 'log' component
 			'preload' => array('log'),
 			
@@ -50,8 +79,9 @@ class ConfigBase{
 		
 				//import from cms
 				'cms.components.*',
-				'cms.components.filters.*',
-				'cms.components.pagers.*',
+				'cms.components.behaviors.*',
+				//'cms.components.filters.*',
+				//'cms.components.pagers.*',
 				'cms.extensions.*',
 				'cms.models.*',
 				'cms.widgets.*',
@@ -61,7 +91,7 @@ class ConfigBase{
 			'components'=>array(
 				'user'=>array(
 					'allowAutoLogin' => true,
-					'class' => 'dsdsadsa',//ddadsadsadadsada
+					//'class' => 'dsdsadsa',//ddadsadsadadsada
 					'guestName' => 'Guest',
 				),
 		
@@ -71,9 +101,9 @@ class ConfigBase{
 					'showScriptName' => false,
 				),
 		
-				'authManager' => array(
+				//'authManager' => array(
 						//dsadsadsadsadsa
-				),
+				//),
 					
 				'passwordManager' => array(
 					'class' => 'PasswordManager',

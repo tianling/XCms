@@ -10,7 +10,7 @@ defined('DS') or define('DS',DIRECTORY_SEPARATOR);
 defined('CMS_DIR') or define('CMS_DIR',dirname(__FILE__).DS);
 defined('CORE_DIR') or define('CORE_DIR',CMS_DIR.'core'.DS);
 //path to yii framework
-defined('YII_DIR') or define('YII_DIR',CMS_DIR.'../yii/framework'.DS);
+defined('YII_DIR') or define('YII_DIR',CMS_DIR.'..'.DS.'yii'.DS.'framework'.DS);
 
 //StripSlashes all GET, POST, COOKIE
 if (get_magic_quotes_gpc()){

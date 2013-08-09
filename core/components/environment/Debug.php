@@ -12,4 +12,31 @@ class Debug extends ConfigBase{
 		$this->debug = true;
 		$this->traceLevel = 3;
 	}
+	
+	public function merge(){
+		return array(
+				'modules' => array(
+						'gii'=>array(
+								'class'=>'system.gii.GiiModule',
+								'password'=>'lancelot!410',
+								'ipFilters'=>array('127.0.0.1','::1'),
+						),
+				),
+				'components' => array(
+						'log'=>array(
+								'class'=>'CLogRouter',
+								'routes'=>array(
+										array(
+												'class'=>'CWebLogRoute',
+												'levels'=>'error, warning',
+										),
+								),
+									
+						),
+				),
+				'params' => array(
+						'test' => 'dasdsad'
+				),
+		);
+	}
 }
