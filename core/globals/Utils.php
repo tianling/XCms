@@ -7,31 +7,35 @@
  * 
  * you can access all the global functions in your application
  */
-	
-	function app(){
-	    return Yii::app();
-	}
-	
-	function clientScript(){
-		return Yii::app()->getClientScript();
-	}
-	
-	function getComponent($componentId = null){
+class Utils{
+	public static function getComponent($componentId = null){
 		if ( $componentId === null )
 			return Yii::app()->getComponents();
 		else
 			return Yii::app()->getComponent($componentId);
 	}
 	
-	function user(){
+	/**
+	 * faster than Yii::app()->clientScript
+	 * @return CClientScript
+	 */
+	public static function clientScript(){
+		return Yii::app()->getClientScript();
+	}
+	
+	/**
+	 * faster than Yii::app()->user
+	 * @return CWebUser
+	 */
+	public static function user(){
 		return Yii::app()->getUser();
 	}
 	
-	function createUrl($route,$params=array(),$ampersand='&'){
+	public static function createUrl($route,$params=array(),$ampersand='&'){
 		return Yii::app()->createUrl($route,$params,$ampersand);
 	}
 	
-	function html($text){
+	public static function html($text){
 		return CHtml::encode($text);
 	}
 	
@@ -42,11 +46,11 @@
 	 * @param array $htmlOptions
 	 * @return string
 	 */
-	function l($text, $url = '#', $htmlOptions = array()){
+	public static function link($text, $url = '#', $htmlOptions = array()){
 		return CHtml::link($text, $url, $htmlOptions);
 	}
 	
-	function session(){
+	public static function session(){
 		return Yii::app()->getSession();
 	}
 
@@ -54,26 +58,26 @@
 	 * Set the key, value in Session
 	 * @return boolean
 	 */
-	function addSession($key,$value){
-		return Yii::app()->getSession()->add($key, $value);
+	public static function addSession($key,$value){
+		return self::session()->add($key, $value);
 	}
 	
 	/**
 	 * Get the value from key in Session
 	 * @return array | NULL
 	 */
-	function getSession($key){
-		return Yii::app()->getSession()->get($key);
+	public static function getSession($key){
+		return self::session()->get($key);
 	}
 	
-	function settings(){
+	public static function settings(){
 		return Yii::app()->settings;
 	}
 	
 	/**
 	 * shortcut to Yii::t() with default category = 'stay'
 	 */
-	function t($category = 'xcms', $message, $params = array(), $source = null, $language = null){
+	public static function t($category = 'xcms', $message, $params = array(), $source = null, $language = null){
 		return Yii::t($category, $message, $params, $source, $language);
 	}
 	
@@ -82,7 +86,7 @@
 	 * If the parameter is given,
 	 * it will be returned and prefixed with the app baseUrl.
 	 */
-	function baseUrl($url=null)
+	public static function baseUrl($url=null)
 	{
 		static $baseUrl;
 		if ($baseUrl===null)
@@ -93,7 +97,7 @@
 	/**
 	 * @return array | NULL
 	 */
-	function params(){
+	public static function params(){
 		return Yii::app()->params;
 	}
 	
@@ -101,7 +105,7 @@
 	 * @param unknown_type $name
 	 * @return mixed | NULL
 	 */
-	function param($name){
+	public static function param($name){
 		return isset(Yii::app()->params[$name]) ? Yii::app()->params[$name] : NULL;
 	}
 	
@@ -110,7 +114,7 @@
 	 * @param boolean $useSystemDump
 	 * @param boolean $exit
 	 */
-	function dump($val,$useSystemDump = false,$exit = true){
+	public static function dump($val,$useSystemDump = false,$exit = true){
 		if ( $useSystemDump === true )
 			var_dump($val);
 		else
@@ -123,7 +127,7 @@
 	 * Convert local timestamp to GMT
 	 *
 	 */
-	function local_to_gmt($time = ''){
+	public static function local_to_gmt($time = ''){
 		if ($time == '')
 			$time = time();
 		return mktime( gmdate("H", $time), gmdate("i", $time), gmdate("s", $time), gmdate("m", $time), gmdate("d", $time), gmdate("Y", $time));
@@ -133,7 +137,7 @@
 	 * Get the current IP of the connection
 	 *
 	 */
-	function ip() {
+	public static function ip() {
 		$ip = null;
 		$ipType = array(
 					'HTTP_CLIENT_IP',
@@ -162,7 +166,7 @@
 	/**
 	 * Generate Unique string
 	 */
-	function genUniqueString($len=8) {
+	public static function genUniqueString($len=8) {
 		$hex = md5(param('salt-file') . uniqid("", true));
 	
 		$pack = pack('H*', $hex);
@@ -182,7 +186,7 @@
 	/**
 	 * Get array of subfolders' name
 	 */
-	function get_subfolders_name($path,$file=false){
+	public static function get_subfolders_name($path,$file=false){
 		$list=array();
 		$results = scandir($path);
 		foreach ($results as $result) {
@@ -205,14 +209,14 @@
 	/**
 	 * Check current app is console or not
 	 */
-	function isConsoleApp() {
+	public static function isConsoleApp() {
 		return get_class(Yii::app())=='CConsoleApplication';
 	}
 	
 	/**
 	 * Replace Tags
 	 */
-	function replaceTags($startPoint, $endPoint, $newText, $source) {
+	public static function replaceTags($startPoint, $endPoint, $newText, $source) {
 		return preg_replace('#('.preg_quote($startPoint).')(.*)('.preg_quote($endPoint).')#si', '${1}'.$newText.'${3}', $source);
 	}
 	
@@ -222,7 +226,7 @@
 	 * @param Char $rplChar character to replace all the white spaces
 	 * @param boolean upWords   set True to uppercase the first character of each word, set False otherwise
 	 */
-	function encode($text, $rplChar='', $upWords=true)
+	public static function encode($text, $rplChar='', $upWords=true)
 	{
 		$encodedText = null;
 		if($upWords)
@@ -251,7 +255,7 @@
 	}
 	
 	// Query Filter String from Litpi.com
-	function query_clean($str)
+	public static function query_clean($str)
 	{
 		//Use RegEx for complex pattern
 		$filterPattern = array(
@@ -276,7 +280,7 @@
 	}
 	
 	//XSS Clean Data Input from Litpi.com
-	function xss_clean($data)
+	public static function xss_clean($data)
 	{
 		return $data;
 		// Fix &entity\n;
@@ -313,7 +317,7 @@
 		return $data;
 	}
 	
-	function plaintext($s)
+	public static function plaintext($s)
 	{
 		$s = strip_tags($s);
 		$s = xss_clean($s);
@@ -327,7 +331,7 @@
 	 * @param string $url
 	 * @param array $params
 	 */
-	function curl_async($requestType,$url,$params){
+	public static function curl_async($requestType,$url,$params){
 		foreach ($params as $key => $val) {
 			if (is_array($val))
 				$val = implode(',', $val);
@@ -357,7 +361,7 @@
 	 * @param string $url
 	 * @param array $params
 	 */
-	function curl_post_async($url, $params){
+	public static function curl_post_async($url, $params){
 		curl_async('POST', $url, $params);
 	}
 	
@@ -366,7 +370,7 @@
 	 * @param string $url
 	 * @param array $params
 	 */
-	function curl_get_async($url, $params){
+	public static function curl_get_async($url, $params){
 		curl_async('GET', $url, $params);
 	}
 	
@@ -376,7 +380,7 @@
 	 * @param string $s
 	 * @return string
 	 */
-	function formatFileSize($s)
+	public static function formatFileSize($s)
 	{
 		if($s >= "1073741824")
 		{
@@ -406,7 +410,7 @@
 	 * Fix back button on IE6 (stupid) browser
 	 * @author khanhdn
 	 */
-	function fixBackButtonOnIE()
+	public static function fixBackButtonOnIE()
 	{
 		//drupal_set_header("Expires: Sat, 27 Oct 1984 08:52:00 GMT GMT");  // Always expired (1)
 		//drupal_set_header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT"); // always modified (2)
@@ -416,13 +420,11 @@
 		//ini_set('cms','session.cache_limiter', 'private');   // (6)
 	}
 
-	function base64_serialize($data){
+	public static function base64_serialize($data){
 		return base64_encode(serialize($data));
 	}
 	
-	function base64_unserialize($data){
+	public static function base64_unserialize($data){
 		return unserialize(base64_decode($data));
 	}
-
-
-?>
+}

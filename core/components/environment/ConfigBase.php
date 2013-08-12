@@ -9,27 +9,18 @@
  * all config's base class
  */
 class ConfigBase{
-	
 	/**
 	 * @var boolean
 	 */
 	public $debug;
-	
 	/**
 	 * @var int
 	 */
 	public $traceLevel;
-	
 	/**
 	 * @var Environment
 	 */
 	protected $_owner;
-	
-	/**
-	 * @var string
-	 */
-	protected $_basePath;
-	
 	/**
 	 * @var array
 	 */
@@ -38,22 +29,19 @@ class ConfigBase{
 	/**
 	 * @param Environment $owner
 	 */
-	public function __construct($owner){
-		$this->owner = $owner;
-		$this->_basePath = $owner->basePath;
-	}
-	
-	public function init(){
+	public function init($owner){
 		$this->debug = false;
 		$this->traceLevel = 0;
+		$this->_owner = $owner;
 	}
 	
 	public function getConfig(){
 		if ( empty($this->_config) ){
 			$this->_config = array_merge_recursive($this->base(),$this->merge());
-			if ( $this->_basePath !== '' ){
-				$this->_config['basePath'] = $this->_basePath;
-			}
+		}
+		$basePath = $this->_owner->basePath;
+		if ( $basePath !== '' ){
+			$this->_config['basePath'] = $basePath;
 		}
 		return $this->_config;
 	}
@@ -80,8 +68,8 @@ class ConfigBase{
 				//import from cms
 				'cms.components.*',
 				'cms.components.behaviors.*',
-				//'cms.components.filters.*',
-				//'cms.components.pagers.*',
+				'cms.components.filters.*',
+				'cms.components.pagers.*',
 				'cms.extensions.*',
 				'cms.models.*',
 				'cms.widgets.*',
@@ -107,7 +95,6 @@ class ConfigBase{
 					
 				'passwordManager' => array(
 					'class' => 'PasswordManager',
-					'authKey' => '*-XCmsPasswordManager-*Enjoy! :)'
 				),
 		
 //				'errorHandler'=>array(

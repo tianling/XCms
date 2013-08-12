@@ -23,3 +23,4 @@ if (get_magic_quotes_gpc()){
 }
 
 require CORE_DIR.'components'.DS.'environment'.DS.'Environment.php';
+require CORE_DIR.'components'.DS.'environment'.DS.'ConfigBase.php';

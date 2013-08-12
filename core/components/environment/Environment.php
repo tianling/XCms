@@ -7,71 +7,47 @@
  * Encoding UTF-8
  */
 class Environment{
-	const BAISC = 'ConfigBase';
-	const CONSOLE_DEBUG = 'ConsoleDebug';
-	const CONSOLE_SANBOX = 'ConsoleSandbox';
-	const CONSOLE_READY = 'ConsoleReady';
-	const CONSOLE_PRODUCTION = 'ConsoleProduction';
-	const DEBUG = 'Debug';
-	const SANDBOX = 'Sandbox';
-	const READY = 'Ready';
-	const PRODUCTION = 'Production';
-	
 	/**
 	 * @var CApplication
 	 */
 	public $application;
-	
 	/**
 	 * the application's base path
 	 * @var string
 	 */
 	public $basePath = '';
-	
 	/**
 	 * @var string
 	 */
 	protected $_applicationClass;
-	
+	/**
+	 * @var array map of yii calss
+	 */
 	protected $_yiiMap = array(
 			'yii' => 'yii',
 			'lite' => 'yiilite',
 			'test' => 'yiit'
 	);
-	
-	protected $_configMap = array(
-			self::BAISC,
-			self::CONSOLE_DEBUG,
-			self::CONSOLE_SANBOX,
-			self::CONSOLE_READY,
-			self::CONSOLE_PRODUCTION,
-			self::DEBUG,
-			self::SANDBOX,
-			self::READY,
-			self::PRODUCTION
-	);
-	
 	/**
 	 * @var string
 	 */
 	private $_yiiType;
-	
 	/**
 	 * @var string
 	 */
-	private $_configType;
-	
+	private $_yiiIncludePath;
 	/**
-	 * config Object
 	 * @var ConfigBase
 	 */
 	private $_config = null;
 	
 	/**
-	 * @param int $configType
+	 * @param string $configObject
+	 * @param string $applicationClass
+	 * @param string $yiiType
 	 */
-	public function __construct($configType,$applicationClass = 'CmsApplication',$yiiType = 'yii'){
-		$this->_configType = $configType;
+	public function __construct($configObject,$applicationClass = 'CmsApplication',$yiiType = 'yii'){
+		$this->setConfig($configObject);
 		$this->_yiiType = $yiiType;
 		$this->_applicationClass = $applicationClass;
 	}
@@ -82,8 +58,9 @@ class Environment{
 	public function prepare(){
 		$this->yiiInclude();
 		Yii::import('cms.components.CmsApplication');
-		Yii::import('cms.components.environment.*');
-		$this->_setConfig();
+		defined('YII_DEBUG') or define('YII_DEBUG',$this->_config->debug);
+		defined('YII_TRACE_LEVEL') or define('YII_TRACE_LEVEL',$this->_config->traceLevel);
+		$this->application = Yii::createApplication($this->_applicationClass,$this->_config->getConfig());
 	}
 	
 	/**
@@ -99,29 +76,8 @@ class Environment{
 	 */
 	public function run(){
 		$this->prepare();
-		defined('YII_DEBUG') or define('YII_DEBUG',$this->_config->debug);
-		defined('YII_TRACE_LEVEL') or define('YII_TRACE_LEVEL',$this->_config->traceLevel);
-		$this->application = Yii::createApplication($this->_applicationClass,$this->_config->getConfig());
-		
 		if ( $this->beforeRun() ){
 			$this->application->run();
-		}
-	}
-	
-	/**
-	 * @param mixed $configType
-	 */
-	public function addConfigType($configType = null){
-		if ( $configType === null ){
-			return;
-		}
-		
-		if ( is_string($configType) ){
-			$this->_configType[] = $configType;
-		}elseif ( is_array($configType) ){
-			foreach ( $configType as $type ){
-				$this->_configType[] = $type;
-			}
 		}
 	}
 	
@@ -129,44 +85,49 @@ class Environment{
 	 * @return array
 	 */
 	public function getConfig(){
-		if ( $this->_config === null ){
-			$this->_setConfig();
-		}
 		return $this->_config;
 	}
 	
 	/**
-	 * reset config object
-	 * @param string $configType
+	 * @return string
 	 */
-	public function resetConfig($configType = null){
-		if ( $configType !== $this->_configType ){
-			$this->_configType = $configType;
-			$this->_setConfig();
+	public function getYiiIncludePath(){
+		if( empty($this->_yiiIncludePath) && defined('YII_DIR') ){
+			return YII_DIR;
+		}else {
+			return $this->_yiiIncludePath;
 		}
 	}
 	
-	private function _setConfig(){
-		$class = in_array($this->_configType,$this->_configMap) ? $this->_configType : self::BAISC;
-		$this->_config = new $class($this);
-		$this->_config->init();
+	/**
+	 * @param ConfigBase $configObject
+	 */
+	public function setConfig($configObject){
+		if( $configObject instanceof ConfigBase ){
+			$this->_config = $configObject;
+			$this->_config->init($this);
+		}else{
+			throw new Exception('config object is not a instanceof ConfigBase.exit.');
+		}
+	}
+	
+	/**
+	 * @param string $includePath path to yii farmework path
+	 */
+	public function setYiiIncludePath($includePath = null){
+		$this->_yiiIncludePath = $includePath.DIRECTORY_SEPARATOR;
 	}
 	
 	/**
 	 * include yii framework and set alias 'cms'
 	 */
 	public function yiiInclude(){
-		if ( isset($this->_yiiMap[$this->_yiiType]) ){
-			require YII_DIR.$this->_yiiMap[$this->_yiiType].'.php';
+		$yii = $this->getYiiIncludePath().$this->_yiiMap[$this->_yiiType].'.php';
+		if ( isset($this->_yiiMap[$this->_yiiType]) && is_file($yii)){
+			require $yii;
 			Yii::setPathOfAlias('cms',CORE_DIR);
 		}else{
-			throw new Exception('yii did not included.please check "YII_DIR" in cms.php.');
+			throw new Exception('yii did not included.please check yii include path.you can set yii include path via Environment::setYiiIncludePath()');
 		}
 	}
-	
-	
-	
-	
-	
-	
 }

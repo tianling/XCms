@@ -6,3 +6,6 @@
  * Date 2013-8-8
  * Encoding UTF-8
  */
+class permissionException extends CException{
+	
+}
