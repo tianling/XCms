@@ -94,7 +94,7 @@ class ConfigBase{
 				//),
 					
 				'passwordManager' => array(
-					'class' => 'PasswordManager',
+					'class' => 'cms.components.PasswordManager',
 				),
 		
 //				'errorHandler'=>array(

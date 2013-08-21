@@ -7,5 +7,4 @@
  * Encoding UTF-8
  */
 class CmsActiveRecord extends CActiveRecord{
-	
 }
