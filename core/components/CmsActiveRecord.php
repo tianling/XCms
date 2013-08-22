@@ -7,4 +7,14 @@
  * Encoding UTF-8
  */
 class CmsActiveRecord extends CActiveRecord{
+	public function findByPk($pk,$condition='',$params=array()){
+		if ( $pk === null ){
+			return null;
+		}
+		if ( ! $pk instanceof CActiveRecord ){
+			return $this->findByPk($pk,$condition,$params);
+		}else {
+			return $pk;
+		}
+	}
 }

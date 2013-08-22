@@ -29,18 +29,8 @@
  * @property AuthPermission[] $authPermissions
  * @property User[] $authUsers
  */
-class AuthRoles extends CmsActiveRecord
+class AuthRoles extends LevelModel
 {
-	/**
-	 * when save/update.use this method to update preorder tree.
-	 * @var int
-	 */
-	const PREORDER_TREE_SAVE = 0;
-	/**
-	 * when delete.use this method to update preorder tree.
-	 * @var unknown
-	 */
-	const PREORDER_TREE_DELETE = 1;
 	
 	/**
 	 * @return string the associated database table name
@@ -148,23 +138,6 @@ class AuthRoles extends CmsActiveRecord
 		return parent::model($className);
 	}
 	
-	/**
-	 * get left or right pole.
-	 * @param string $type
-	 * @return int
-	 */
-	public function getPole($type){
-		$order = $type === 'lft' ? ' ASC' : ' DESC';
-		$criteria = new CDbCriteria();
-		$criteria->select = $type.' AS pole';
-		$criteria->order = $type.$order;
-		$criteria->limit = 1;
-		$criteria->offset = 0;
-		$result = $this->findAll($criteria);
-		
-		return !empty($result) ? $result[0]['pole'] : null;
-	}
-	
 	protected function beforeSave(){
 		if ( $this->getIsNewRecord() ){//insert
 			if ( ($attributes = $this->getAttributesBeforeSave()) === false ){
@@ -256,36 +229,112 @@ class AuthRoles extends CmsActiveRecord
 	}
 	
 	/**
-	 * Update preorder tree.
+	 * Update preorder tree before save.
 	 * The table must conatins fields `lft` and `rgt`.
-	 * @param int $method stands for save/update or delete.
 	 * @param mixed $subtreeRoot can be an integer or an CActiveRecord.
-	 * @param mixed $targetNode can be an integer or an CActiveRecord.NULL if the $method is delete.
+	 * @param mixed $targetNode can be an integer or an CActiveRecord.
 	 * @return boolean
 	 */
-	public function updatePreorderTree($method,$subtreeRoot,$targetNode=null){
+	public function updatePreorderTreeOnSave($subtreeRoot=null,$targetNode=null){
 		$db = $this->getDbConnection();
 		$table = $this->getMetaData()->tableSchema->getTable($this->tableName());
 		
-		if ( $method === self::PREORDER_TREE_SAVE ){
-			$operator = '+';
-			$conditionOperator = '>=';
-		}elseif ( $method === self::PREORDER_TREE_DELETE ){
-			$operator = '-';
-			$conditionOperator = '>';
+		$subtreeRoot = $this->findByPk($subtreeRoot);
+		$targetNode = $this->findByPk($targetNode);
+		
+		if ( $subtreeRoot === null ){
+			if ( $targetNode === null ){
+				//New node.Save as level 1 node.There is no need to update preorder tree.
+				return true;
+			}else {
+				//New node.Save under target node.
+				$targetRgt = $targetNode->getAttribute('rgt');
+				$sql = "UPDATE {$table} SET `lft`=`lft`+2 WHERE `lft`>{$targetRgt};UPDATE {$table} SET `rgt`=`rgt`+2 WHERE `rgt`>={$targetRgt};";
+				$db->createCommand($sql)->execute();
+				return true;
+			}
 		}else {
+			if ( $targetNode === null ){
+				//Old tree.Save as level 1 tree.
+				$this->updatePreorderTreeOnDelete($subtreeRoot);
+				return true;
+			}else {
+				//Old tree.Save under target node.
+				$targetRgt = $targetNode->getAttribute('rgt');
+				$increase = 2 * ( $this->countPreorderTreeByBoundary($subtreeRoot) + 1 );
+				$sql = "UPDATE {$table} SET `lft`=`lft`+{$increase} WHERE `lft`>{$targetRgt};UPDATE {$table} SET `rgt`=`rgt`+{$increase} WHERE `rgt`>={$targetRgt};";
+				$db->createCommand($sql)->execute();
+			}
+		}
+	}
+	
+	/**
+	 * Update preorder tree before delete.
+	 * @param mixed $subtreeRoot
+	 * @return mixed return decrease number
+	 */
+	public function updatePreorderTreeOnDelete($subtreeRoot){
+		$subtreeRoot = $this->findByPk($subtreeRoot);
+		if ( $subtreeRoot === null ){
 			return false;
 		}
 		
-		if ( ! $subtreeRoot instanceof CActiveRecord ){
-			$subtreeRoot = $this->findByPk($subtreeRoot);
-		}
-		if ( ! $targetNode instanceof CActiveRecord ){
-			$targetNode = $this->findByPk($targetNode);
+		$db = $this->getDbConnection();
+		$table = $this->getMetaData()->tableSchema->getTable($this->tableName());
+		$subtreeRootRgt = $subtreeRoot->getAttribute('rgt');
+		
+		$decrease = 2 * ($this->countPreorderTreeByBoundary($subtreeRoot) + 1);
+		$sql = "UPDATE {$table} SET `lft`=`lft`-{$decrease} WHERE `lft`>{$subtreeRootRgt};UPDATE {$table} SET `rgt`=`rgt`-{$decrease} WHERE `rgt`>{$subtreeRootRgt};";
+		$db->createCommand($sql)->execute();
+		return $decrease;
+	}
+	
+	/**
+	 * Count the number of $node's children by lft and rgt.
+	 * @param mixed $node
+	 * @return int
+	 */
+	public function countPreorderTreeByBoundary($node){
+		$node = $this->findByPk($node);
+		if ( $node === null ){
+			return false;
 		}
 		
-		$countSql = "SELECT COUNT(*) FROM `{$table}` WHERE `lft`>{$subtreeRoot->lft} AND `rgt`<{$subtreeRoot->rgt}";
-		$change = 2 * $this->countBySql($countSql);
+		$table = $this->getMetaData()->tableSchema->getTable($this->tableName());
+		$lft = $node->getAttribute('lft');
+		$rgt = $node->getAttribute('rgt');
+		$countSql = "SELECT COUNT(*) FROM `{$table}` WHERE `lft`>{$lft} AND `rgt`<{$rgt};";
+		return $this->countBySql($countSql);
+	}
+	
+	/**
+	 * Count the number of $parent's children by parent id.
+	 * @param mixed $parent
+	 * @return int
+	 */
+	public function countPreorderTreeByParent($parent){
+		$parent = $this->findByPk($parent);
+		if ( $parent === null ){
+			return false;
+		}
 		
+		$table = $this->getMetaData()->tableSchema->getTable($this->tableName());
+		$fid = $parent->getAttribute('id');
+		$countSql = "SELECT COUNT(*) FROM `{$table}` WHERE `fid`={$fid}";
+		return $this->countBySql($countSql);
+	}
+	
+	/**
+	 * Count the number in $level
+	 * @param unknown $level
+	 * @return int
+	 */
+	public function countPreorderTreeByLevel($level){
+		if ( !is_int($level) ){
+			$level = intval($level);
+		}
+		$table = $this->getMetaData()->tableSchema->getTable($this->tableName());
+		$countSql = "SELECT COUNT(*) FROM `{$table}` WHERE `level`={$level}";
+		return $this->countBySql($countSql);
 	}
 }
