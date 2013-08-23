@@ -8,11 +8,11 @@
  */
 class CmsActiveRecord extends CActiveRecord{
 	public function findByPk($pk,$condition='',$params=array()){
-		if ( $pk === null ){
+		if ( empty($pk) ){
 			return null;
 		}
 		if ( ! $pk instanceof CActiveRecord ){
-			return $this->findByPk($pk,$condition,$params);
+			return parent::findByPk($pk,$condition,$params);
 		}else {
 			return $pk;
 		}
