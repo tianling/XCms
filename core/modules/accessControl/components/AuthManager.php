@@ -5,6 +5,8 @@
  * 
  * Date 2013-8-14
  * Encoding UTF-8
+ * 
+ * @property RightCalculator $rightCalculator
  */
 class AuthManager extends CApplicationComponent{
 	/**
@@ -19,15 +21,30 @@ class AuthManager extends CApplicationComponent{
 	const GROUP = 'Groups';
 	const OPERATION = 'Operation';
 	const PERMISSION = 'Permission';
-	const PROTECTED_DATA = 'ProtectedTable';
+	const PROTECTED_TABLE = 'ProtectedTable';
 	const RESOURCE = 'Resource';
 	const RESOURCE_TYPE = 'ResourceType';
 	const ROLE = 'Roles';
+	
+	/**
+	 * @var RightCalculator
+	 */
+	private $_rightCalculator=null;
 	
 	public function init(){
 		$moduleAlias = 'cms.modules.accessControl';
 		Yii::import('cms.modules.accessControl.components.*');
 		Yii::import('cms.modules.accessControl.models.*');
+	}
+	
+	/**
+	 * @return RightCalculator
+	 */
+	public function getCalculator(){
+		if ( $this->_rightCalculator === null ){
+			$this->_rightCalculator = RightCalculator::getInstance();
+		}
+		return $this->_rightCalculator;
 	}
 	
 	/**

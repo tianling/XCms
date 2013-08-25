@@ -79,12 +79,17 @@ abstract class LevelModel extends CmsActiveRecord{
 		}
 	}
 	
-	public function deleteChildren($subtreeRoot=null){
-		$subtreeRoot = $this->findByPk($subtreeRoot);
-		if ( $subtreeRoot === null ){
+	/**
+	 * delete the children of a node.
+	 * @param CActiveRecord $node
+	 * @return boolean
+	 */
+	public function deleteChildren($node=null){
+		$node = $this->findByPk($node);
+		if ( $node === null ){
 			return false;
 		}
-		return $this->deleteAll("`lft`>={$subtreeRoot->lft} AND `rgt`<={$subtreeRoot->rgt}");
+		return $this->deleteAll("`lft`>{$node->lft} AND `rgt`<{$node->rgt}");
 	}
 	
 	/**

@@ -60,10 +60,10 @@ class AuthGroups extends CmsActiveRecord
 		// NOTE: you may need to adjust the relation name and the related
 		// class name for the relations automatically generated below.
 		return array(
-			'apiUser' => array(self::MANY_MANY, 'ApiUser', '{{api_group}}(group_id, user_id)'),
-			'authRole' => array(self::MANY_MANY, 'AuthRoles', '{{auth_gr}}(group_id, role_id)'),
-			'community' => array(self::HAS_ONE, 'Community', 'id'),
-			'user' => array(self::MANY_MANY, 'User', '{{user_group}}(group_id, user_id)'),
+			'ApiUser' => array(self::MANY_MANY, 'ApiUser', '{{api_group}}(group_id, user_id)'),
+			'AuthRole' => array(self::MANY_MANY, 'AuthRoles', '{{auth_gr}}(group_id, role_id)'),
+			'Community' => array(self::HAS_ONE, 'Community', 'id'),
+			'User' => array(self::MANY_MANY, 'User', '{{user_group}}(group_id, user_id)'),
 		);
 	}
 
