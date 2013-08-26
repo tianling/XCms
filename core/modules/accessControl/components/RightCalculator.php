@@ -7,6 +7,8 @@
  * Encoding UTF-8
  * 
  * @property RightCalculator $instance
+ * @property array $data
+ * @property int $uid user id
  */
 class RightCalculator extends CComponent{
 	/**
@@ -33,7 +35,7 @@ class RightCalculator extends CComponent{
 	);
 	
 	/**
-	 * user id.
+	 * user id
 	 * @var int
 	 */
 	private $_uid = null;
@@ -57,16 +59,21 @@ class RightCalculator extends CComponent{
 	
 	/**
 	 * @param string $attr the name of attribute that will be reset.
+	 * @param string $separator 
 	 * reset all data if attr is null.
 	 * @throws CException
 	 */
-	public function reset($type=null){
+	public function reset($type=null,$separator=null){
 		if ( $type === null ){
 			foreach ( $this->_data as $key => $value ){
 				$this->_data[$key] = null;
 			}
 		}elseif ( isset($this->_data[$type] )) {
-			$this->_data[$type] = null;
+			if ( $separator !== null && isset($this->_data[$type][$separator]) ){
+				$this->_data[$type][$separator] = null;
+			}else {
+				$this->_data[$type] = null;
+			}
 		}else {
 			throw new CException(Yii::t('auth','calculator_reset_wrong'));
 		}
@@ -283,6 +290,11 @@ class RightCalculator extends CComponent{
 		return $finalPermissions;
 	}
 	
+	/**
+	 * run calculator to get final permissions
+	 * @param int $uid
+	 * @return array
+	 */
 	public function run($uid=null){
 		if ( $uid !== null ){
 			$this->setUid($uid);

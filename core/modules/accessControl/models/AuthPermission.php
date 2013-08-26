@@ -12,7 +12,7 @@
  *
  * The followings are the available columns in table '{{auth_permission}}':
  * @property string $id
- * @property string $function_id
+ * @property string $operation_id
  * @property string $resource_id
  * @property string $permission_name
  * @property string $description
@@ -41,13 +41,13 @@ class AuthPermission extends CmsActiveRecord
 		// NOTE: you should only define rules for those attributes that
 		// will receive user inputs.
 		return array(
-			array('function_id, permission_name', 'required'),
-			array('function_id, resource_id', 'length', 'max'=>11),
+			array('operation_id, permission_name', 'required'),
+			array('operation_id, resource_id', 'length', 'max'=>11),
 			array('permission_name', 'length', 'max'=>20),
 			array('description', 'safe'),
 			// The following rule is used by search().
 			// @todo Please remove those attributes that should not be searched.
-			array('id, function_id, resource_id, permission_name, description', 'safe', 'on'=>'search'),
+			array('id, operation_id, resource_id, permission_name, description', 'safe', 'on'=>'search'),
 		);
 	}
 
@@ -59,7 +59,7 @@ class AuthPermission extends CmsActiveRecord
 		// NOTE: you may need to adjust the relation name and the related
 		// class name for the relations automatically generated below.
 		return array(
-			'function' => array(self::BELONGS_TO, 'AuthOperation', 'function_id'),
+			'operation' => array(self::BELONGS_TO, 'AuthOperation', 'operation_id'),
 			'resource' => array(self::BELONGS_TO, 'XmcsAuthResource', 'resource_id'),
 			'authRole' => array(self::MANY_MANY, 'AuthRoles', '{{auth_role_permission}}(permission_id, role_id)'),
 			'user' => array(self::MANY_MANY, 'User', '{{auth_user_permission}}(permission_id, user_id)'),
@@ -73,7 +73,7 @@ class AuthPermission extends CmsActiveRecord
 	{
 		return array(
 			'id' => 'ID',
-			'function_id' => 'Function',
+			'operation_id' => 'Function',
 			'resource_id' => 'Resource',
 			'permission_name' => 'Permission Name',
 			'description' => 'Description',
@@ -99,7 +99,7 @@ class AuthPermission extends CmsActiveRecord
 		$criteria=new CDbCriteria;
 
 		$criteria->compare('id',$this->id,true);
-		$criteria->compare('function_id',$this->function_id,true);
+		$criteria->compare('operation_id',$this->operation_id,true);
 		$criteria->compare('resource_id',$this->resource_id,true);
 		$criteria->compare('permission_name',$this->permission_name,true);
 		$criteria->compare('description',$this->description,true);

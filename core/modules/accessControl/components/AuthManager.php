@@ -18,13 +18,16 @@ class AuthManager extends CApplicationComponent{
 	 * data object's name.
 	 * @var string
 	 */
-	const GROUP = 'Groups';
-	const OPERATION = 'Operation';
-	const PERMISSION = 'Permission';
-	const PROTECTED_TABLE = 'ProtectedTable';
-	const RESOURCE = 'Resource';
-	const RESOURCE_TYPE = 'ResourceType';
-	const ROLE = 'Roles';
+	const GROUP 			= 'Groups';
+	const OPERATION 		= 'Operation';
+	const PERMISSION 		= 'Permission';
+	const PROTECTED_TABLE 	= 'ProtectedTable';
+	const RESOURCE 			= 'Resource';
+	const RESOURCE_TYPE 	= 'ResourceType';
+	const ROLE 				= 'Roles';
+	
+	const ACCESS_OPERATION 	= 'operationAccess';
+	const ACCESS_RESOURCE 	= 'resourceAccess';
 	
 	/**
 	 * @var RightCalculator
@@ -32,7 +35,6 @@ class AuthManager extends CApplicationComponent{
 	private $_rightCalculator=null;
 	
 	public function init(){
-		$moduleAlias = 'cms.modules.accessControl';
 		Yii::import('cms.modules.accessControl.components.*');
 		Yii::import('cms.modules.accessControl.models.*');
 	}
@@ -99,5 +101,13 @@ class AuthManager extends CApplicationComponent{
 			$object->save();
 		}
 		return $object;
+	}
+	
+	/**
+	 * @param int $uid
+	 */
+	public function checkAccess($uid){
+		
+		$permissions = $this->getCalculator()->run($uid);
 	}
 }
