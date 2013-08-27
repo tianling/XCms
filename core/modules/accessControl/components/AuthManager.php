@@ -92,22 +92,43 @@ class AuthManager extends CApplicationComponent{
 	public function generate($type,$data){
 		$class = $this->typePrefix.$type;
 		try {
-			$object = new $class;
-		}catch (CException $e){
+			$object = new $class();
+		}catch (Exception $e){
 			return false;
 		}
+		
 		$object->attributes = $data;
 		if ( $object->validate() ){
 			$object->save();
+		}else {
+			return false;
 		}
 		return $object;
 	}
 	
 	/**
+	 * check operation access
+	 * @param array $operation
 	 * @param int $uid
+	 * @return mixed
 	 */
-	public function checkAccess($uid){
+	public function checkAccess($operation,$uid){
+		if ( !is_array($operation) ){
+			return false;
+		}
+		$module = $operation['module'];
+		$controller = $operation['controller'];
+		$action = $operation['action'];
+		$op = AuthOperation::model()->with('AuthPermissions')->findUniqueRecord($module, $controller, $action);
 		
-		$permissions = $this->getCalculator()->run($uid);
+		$opPermissions = $op->AuthPermisons;
+		foreach ( $opPermissions as $opPermission ){
+			$key = 'p'.$opPermission->getPrimaryKey();
+			$unsafePermissions[$key] = $opPermission;
+		}
+		$userPermissions = $this->getCalculator()->run($uid);
+		$intersect = array_intersect_assoc($unsafePermissions,$userPermissions);
+		
+		return empty($intersect) ? false : array('operation'=>$op,'permission'=>$intersect);
 	}
 }

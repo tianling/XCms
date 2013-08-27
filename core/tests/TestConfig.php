@@ -28,6 +28,7 @@ class TestConfig extends ConfigBase{
 						),
 						'db' => array(
 								'class' => 'system.db.CDbConnection',
+								'tablePrefix' => 'xcms_',
 								'autoConnect' => false,
 								'connectionString' => 'mysql:host=www.caixiao2.com;dbname=shequbao',
 								'emulatePrepare' => true,

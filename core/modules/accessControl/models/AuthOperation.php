@@ -116,4 +116,17 @@ class AuthOperation extends CmsActiveRecord
 	{
 		return parent::model($className);
 	}
+	
+	/**
+	 * find unique record by module,controller and action
+	 * @param string $module
+	 * @param string $controller
+	 * @param string $action
+	 * @return CActiveRecord
+	 */
+	public function findUniqueRecord($module,$controller,$action){
+		$condition = 'module=:m AND controller=:c AND action=:a';
+		$params = array(':m'=>$module,':c'=>$controller,':a'=>$action);
+		return $this->find($condition,$params);
+	}
 }

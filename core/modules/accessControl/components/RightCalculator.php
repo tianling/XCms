@@ -259,8 +259,9 @@ class RightCalculator extends CComponent{
 		if ( $uid !== null ){
 			return $this->getStoredData('finalPermissions','u'.$uid);
 		}
-		if ( !$refresh && isset($this->_data['finalPermissions']['u'.$this->getUid()]) ){
-			return $this->_data['finalPermissions']['u'.$this->getUid()];
+		$separator = 'u'.$this->getUid();
+		if ( !$refresh && isset($this->_data['finalPermissions'][$separator]) ){
+			return $this->_data['finalPermissions'][$separator];
 		}
 		
 		$userPermissions = $this->getUserPermissions();
@@ -269,24 +270,27 @@ class RightCalculator extends CComponent{
 		
 		foreach ( $rolePermissions as $rolePermission ){
 			foreach ( $rolePermission as $permission ){
-				$finalPermissions['p'.$permission->getPrimaryKey()] = $permission;
+				$key = 'p'.$permission->getPrimaryKey();
+				if ( !isset($finalPermissions[$key]) ){
+					$finalPermissions[$key] = $permission;
+				}
 			}
 		}
 		
 		foreach ( $userPermissions as $userPermission ){
-			$separator = 'p'.$userPermission->getPrimaryKey();
-			if ( array_key_exists($separator,$finalPermissions) ){
+			$key = 'p'.$userPermission->getPrimaryKey();
+			if ( array_key_exists($key,$finalPermissions) ){
 				if ( $userPermission->is_own == 0 || time() > $userPermission->expire ){
-					$finalPermissions[$separator] = null;
-					unset($finalPermissions[$separator]);
+					$finalPermissions[$key] = null;
+					unset($finalPermissions[$key]);
 				}
 			}else {
 				if ( $userPermission->is_own == 1 || time() <= $userPermission->expire ){
-					$finalPermissions[$separator] = $userPermission;
+					$finalPermissions[$key] = $userPermission;
 				}
 			}
 		}
-		$this->storeData('finalPermissions','u'.$this->getUid(),$finalPermissions);
+		$this->storeData('finalPermissions',$separator,$finalPermissions);
 		return $finalPermissions;
 	}
 	
