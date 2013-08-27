@@ -57,7 +57,7 @@ class AuthOperation extends CmsActiveRecord
 		// NOTE: you may need to adjust the relation name and the related
 		// class name for the relations automatically generated below.
 		return array(
-			'authPermissions' => array(self::HAS_MANY, 'AuthPermission', 'function_id'),
+			'AuthPermissions' => array(self::HAS_MANY, 'AuthPermission', 'operation_id'),
 		);
 	}
 
@@ -115,5 +115,18 @@ class AuthOperation extends CmsActiveRecord
 	public static function model($className=__CLASS__)
 	{
 		return parent::model($className);
+	}
+	
+	/**
+	 * find unique record by module,controller and action
+	 * @param string $module
+	 * @param string $controller
+	 * @param string $action
+	 * @return CActiveRecord
+	 */
+	public function findUniqueRecord($module,$controller,$action){
+		$condition = 'module=:m AND controller=:c AND action=:a';
+		$params = array(':m'=>$module,':c'=>$controller,':a'=>$action);
+		return $this->find($condition,$params);
 	}
 }

@@ -42,10 +42,9 @@ class AuthGroups extends CmsActiveRecord
 		// will receive user inputs.
 		return array(
 			array('group_name', 'required'),
-			array('enabled', 'numerical', 'integerOnly'=>true),
 			array('group_name', 'length', 'max'=>30),
 			array('list_order', 'length', 'max'=>5),
-			array('description', 'safe'),
+			array('description,enabled', 'safe'),
 			// The following rule is used by search().
 			// @todo Please remove those attributes that should not be searched.
 			array('id, group_name, description, enabled, list_order', 'safe', 'on'=>'search'),

@@ -89,9 +89,9 @@ class ConfigBase{
 					'showScriptName' => false,
 				),
 		
-				//'authManager' => array(
-						//dsadsadsadsadsa
-				//),
+				'authManager' => array(
+					'class' => 'cms.modules.accessControl.components.AuthManager'
+				),
 					
 				'passwordManager' => array(
 					'class' => 'cms.components.PasswordManager',
