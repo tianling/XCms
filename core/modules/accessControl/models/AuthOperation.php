@@ -57,7 +57,7 @@ class AuthOperation extends CmsActiveRecord
 		// NOTE: you may need to adjust the relation name and the related
 		// class name for the relations automatically generated below.
 		return array(
-			'authPermissions' => array(self::HAS_MANY, 'AuthPermission', 'function_id'),
+			'AuthPermissions' => array(self::HAS_MANY, 'AuthPermission', 'operation_id'),
 		);
 	}
 
