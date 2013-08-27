@@ -30,16 +30,12 @@ abstract class LevelModel extends CmsActiveRecord{
 			$transaction = $this->getDbConnection()->beginTransaction();
 			
 			try {
-				$this->updateTreeOnMigrate($old,$fid);
-				$attributes = array_merge($attributes,$this->_levelInfo);
-				
-				$effctRow = parent::updateByPk($pk,$attributes,$condition,$params);
-				if ( $effctRow > 0 ){
+				if ( $this->updateTreeOnMigrate($old,$fid) ){
 					$transaction->commit();
-					return $effctRow;
+					return true;
 				}else {
 					$transaction->rollback();
-					return 0;
+					return false;
 				}
 			}catch ( CException $e ){
 				$transaction->rollback();
@@ -143,8 +139,8 @@ abstract class LevelModel extends CmsActiveRecord{
 			//set level info
 			$this->_levelInfo = array('fid'=>$targetNode->getPrimaryKey(),
 					'level'=>$targetNode->getAttribute('level')+1,
-					'lft'=>$targetRgt,
-					'rgt'=>$targetRgt+1
+					'lft'=>$targetRgt+1,
+					'rgt'=>$targetRgt+2
 			);
 		}
 		return true;
@@ -176,28 +172,37 @@ abstract class LevelModel extends CmsActiveRecord{
 			}
 			
 			$prev = $preorderTree[0];
-			foreach ( $preorderTree as $preorderTreeNode ){
+			foreach ( $preorderTree as $key => $preorderTreeNode ){
 				//Traversal preorder tree,get data to refresh subtree
-				$targetChanged = false;
 				if ( $this->isParent($prev,$preorderTreeNode) ){
+					$targetNodeRefreshKey = $key-1;
 					$targetNode = clone $prev;
-					$targetChanged = true;
-				}
-				$this->updateTreeOnCreate($targetNode);
-				if ( $targetChanged === true && $targetNode !== null ){
 					$targetNode->setAttributes($this->_levelInfo);
 				}
-				$refreshInfo[] = array('pk'=>$preorderTreeNode->getPrimaryKey(),'data'=>$this->_levelInfo);
+				$this->updateTreeOnCreate($targetNode);
+				if ( $targetNode !== null ){
+					$targetRgt = $targetNode->getAttribute('rgt')+2;
+					$refreshInfo[$targetNodeRefreshKey]['data']['rgt'] = $targetRgt;
+					$targetNode->setAttributes(array('rgt'=>$targetRgt));
+				}
+				$refreshInfo[$key] = array('pk'=>$preorderTreeNode->getPrimaryKey(),'data'=>$this->_levelInfo);
 				$prev = $preorderTreeNode;
+			}
+			if ( count($preorderTree) > 1 ){
+				++$refreshInfo[$targetNodeRefreshKey]['data']['rgt'];
 			}
 			
 			$updateSql = '';
 			$table = $this->getMetaData()->tableSchema;
-			$criteria = new CDbCriteria();
 			foreach ( $refreshInfo as $count => $info ){
-				$criteria->condition = "`{$table->primaryKey}`={$info['pk']}";
-				$updateSql .= $this->getCommandBuilder()->createUpdateCommand($table,$info['data'],$criteria)->getText().';';
+				$condition = "`{$table->primaryKey}`={$info['pk']}";
+				$data = $info['data'];
+				$updateSql .= "UPDATE {$table->rawName} SET ";
+				$updateSql .= "`fid`={$data['fid']},`level`={$data['level']},`lft`={$data['lft']},`rgt`={$data['rgt']} ";
+				$updateSql .= "WHERE {$condition};";
+				$data = null;
 			}
+			
 			$this->getCommandBuilder()->createSqlCommand($updateSql)->execute();
 			return true;
 		}else {
@@ -220,7 +225,7 @@ abstract class LevelModel extends CmsActiveRecord{
 		$subtreeRootRgt = $subtreeRoot->getAttribute('rgt');
 		
 		$decrease = 2 * ($this->countTreeByBoundary($subtreeRoot) + 1);
-		$sql = "UPDATE {$table} SET `lft`=`lft`-{$decrease} WHERE `lft`>{$subtreeRootRgt};UPDATE {$table} SET `rgt`=`rgt`-{$decrease} WHERE `rgt`>{$subtreeRootRgt};";
+		$sql = "UPDATE {$table} SET `lft`=`lft`-{$decrease} WHERE `lft`>{$subtreeRootRgt};UPDATE {$table} SET `rgt`=`rgt`-{$decrease} WHERE `rgt`>={$subtreeRootRgt};";
 		$this->getDbConnection()->createCommand($sql)->execute();
 		return $decrease;
 	}
@@ -234,7 +239,7 @@ abstract class LevelModel extends CmsActiveRecord{
 		$assertParent = $this->findByPk($assertParent);
 		$assertChild = $this->findByPk($assertChild);
 		if ( $assertParent !== null && $assertChild !== null ){
-			return $assertParent->getAttribute('id') < $assertChild->getAttribute('fid');
+			return $assertParent->getAttribute('id') == $assertChild->getAttribute('fid');
 		}else {
 			return false;
 		}
@@ -385,6 +390,6 @@ abstract class LevelModel extends CmsActiveRecord{
 		}else {
 			$criteria = $findCondition;
 		}
-		$this->findAll($criteria,$params);
+		return $this->findAll($criteria,$params);
 	}
 }
