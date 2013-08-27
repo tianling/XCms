@@ -30,6 +30,7 @@ abstract class LevelModel extends CmsActiveRecord{
 			$transaction = $this->getDbConnection()->beginTransaction();
 			
 			try {
+				parent::updateByPk($pk,$attributes,$condition,$params);
 				if ( $this->updateTreeOnMigrate($old,$fid) ){
 					$transaction->commit();
 					return true;
@@ -58,16 +59,16 @@ abstract class LevelModel extends CmsActiveRecord{
 			$transaction = $this->getDbConnection()->beginTransaction();
 			
 			try {
-				$this->updateTreeOnDelete($record);
-				$effctRow = parent::deleteByPk($pk,$condition,$params);
+				$updateTreeCommand = $this->updateTreeOnDelete($record,true);
+				$effctRow = $this->deleteChildren($record);
+				$updateTreeCommand->execute();
+				$effctRow += parent::deleteByPk($pk,$condition,$params);
 				if ( $effctRow > 0 ){
-					$effctRow += $this->deleteChildren($record);
 					$transaction->commit();
-					return $effctRow;
 				}else {
 					$transaction->rollback();
-					return 0;
 				}
+				return $effctRow;
 			}catch ( CException $e ){
 				$transaction->rollback();
 				return false;
@@ -213,9 +214,10 @@ abstract class LevelModel extends CmsActiveRecord{
 	/**
 	 * update preorder tree before delete
 	 * @param CActiveRecord $subtreeRoot
-	 * @return int
+	 * @param boolean $returnCommand return update command if true
+	 * @return mixed
 	 */
-	public function updateTreeOnDelete($subtreeRoot){
+	public function updateTreeOnDelete($subtreeRoot,$returnCommand=false){
 		$subtreeRoot = $this->findByPk($subtreeRoot);
 		if ( $subtreeRoot === null ){
 			return false;
@@ -226,8 +228,13 @@ abstract class LevelModel extends CmsActiveRecord{
 		
 		$decrease = 2 * ($this->countTreeByBoundary($subtreeRoot) + 1);
 		$sql = "UPDATE {$table} SET `lft`=`lft`-{$decrease} WHERE `lft`>{$subtreeRootRgt};UPDATE {$table} SET `rgt`=`rgt`-{$decrease} WHERE `rgt`>={$subtreeRootRgt};";
-		$this->getDbConnection()->createCommand($sql)->execute();
-		return $decrease;
+		$command = $this->getDbConnection()->createCommand($sql);
+		if ( $returnCommand === true ){
+			return $command;
+		}else {
+			$command->execute();
+			return $decrease;
+		}
 	}
 	
 	/**
