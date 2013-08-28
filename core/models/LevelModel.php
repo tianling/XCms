@@ -184,42 +184,20 @@ abstract class LevelModel extends CmsActiveRecord{
 					$rgt = $this->_levelInfo['rgt'];
 					$tmpParentKey = $parentKey;
 					$preorderTreeNode['record']->setAttribute('rgt',$rgt);
-					do{
+					while ( $tmpParentKey !== null ){
 						++$rgt;
 						$preorderTree[$tmpParentKey]['record']->setAttributes(array(
 								'rgt' => $rgt
 						));
 						$refreshInfo[$tmpParentKey]['data']['rgt'] = $rgt;
 						$tmpParentKey = $preorderTree[$tmpParentKey]['parent'];
-					}while ( $tmpParentKey !== null );
+					}
 					
 				}else {
 					$preorderTreeNode['record']->setAttributes($this->_levelInfo);
 				}
 				
 				$refreshInfo['n'.$nodePk] = array('pk'=>$nodePk,'data'=>$this->_levelInfo);
-			}
-			var_dump($refreshInfo);return false;
-			
-			$prev = $preorderTree[0];
-			foreach ( $preorderTree as $key => $preorderTreeNode ){
-				//Traversal preorder tree,get data to refresh subtree
-				if ( $this->isParent($prev,$preorderTreeNode) ){
-					$targetNodeRefreshKey = $key-1;
-					$targetNode = clone $prev;
-					$targetNode->setAttributes($this->_levelInfo);
-				}
-				$this->updateTreeOnCreate($targetNode);
-				if ( $targetNode !== null ){
-					$targetRgt = $targetNode->getAttribute('rgt')+2;
-					$refreshInfo[$targetNodeRefreshKey]['data']['rgt'] = $targetRgt;
-					$targetNode->setAttributes(array('rgt'=>$targetRgt));
-				}
-				$refreshInfo[$key] = array('pk'=>$preorderTreeNode->getPrimaryKey(),'data'=>$this->_levelInfo);
-				$prev = $preorderTreeNode;
-			}
-			if ( count($preorderTree) > 1 ){
-				++$refreshInfo[$targetNodeRefreshKey]['data']['rgt'];
 			}
 			
 			$updateSql = '';
