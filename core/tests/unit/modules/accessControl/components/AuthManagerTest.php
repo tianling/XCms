@@ -16,24 +16,35 @@ class AuthManagerTest extends CDbTestCase{
 	}
 	
 	public function testGenerateRole(){
-		$data = array('fid' => 0,'role_name' => 'test role4');
+		//$data = array('fid' => 0,'role_name' => 'test role4');
 		//$this->auth->generate(AuthManager::ROLE,$data);
 	}
 	
 	public function testGenerateRecordsRole(){
 		$data = array(
-// 				array('fid' => 19,'role_name' => 'test role4'),
-//  				array('fid' => 19,'role_name' => 'test role5'),
- 				array('fid' => 20,'role_name' => 'test role6'),
- 				array('fid' => 20,'role_name' => 'test role7'),
-				array('fid' => 20,'role_name' => 'test role8'),
+				/*
+				array('fid' => 0,'role_name' => 'root'),
+  				array('fid' => 1,'role_name' => 'a'),
+ 				array('fid' => 2,'role_name' => 'b'),
+ 				array('fid' => 2,'role_name' => 'c'),
+				array('fid' => 2,'role_name' => 'd'),
+				*/
+				/*
+				array('fid'=>4,'role_name'=>'e'),
+				array('fid'=>4,'role_name'=>'f'),
+				array('fid'=>5,'role_name'=>'g'),
+				*/
+				/*
+				array('fid'=>6,'role_name'=>'h'),
+				array('fid'=>6,'role_name'=>'i'),
+				*/
 		);
 		//$r = $this->auth->generateRecords($data,AuthManager::ROLE);
 	}
 	
 	public function testUpdateLevelModel(){
-		$role = AuthRoles::model()->findByPk(20);
-		$role->fid = 0;
-		$role->save();
+		$role = AuthRoles::model()->findByPk(2);
+ 		$role->fid = 0;
+ 		$role->save();
 	}
 }

@@ -27,7 +27,7 @@ abstract class LevelModel extends CmsActiveRecord{
 		if ( $old === null ){
 			return false;
 		}elseif ( $old->getAttribute('fid') != $fid ) {
-			$transaction = $this->getDbConnection()->beginTransaction();
+			$transaction = $this->getTransaction();
 			
 			try {
 				parent::updateByPk($pk,$attributes,$condition,$params);
@@ -56,7 +56,7 @@ abstract class LevelModel extends CmsActiveRecord{
 		if ( $record === null ){
 			return false;
 		}else {
-			$transaction = $this->getDbConnection()->beginTransaction();
+			$transaction = $this->getTransaction();
 			
 			try {
 				$updateTreeCommand = $this->updateTreeOnDelete($record,true);
@@ -112,7 +112,7 @@ abstract class LevelModel extends CmsActiveRecord{
 	public function getBoundaryPole($boundaryName){
 		$table = $this->getMetaData()->tableSchema->rawName;
 		$order = $boundaryName. ($boundaryName === 'lft' ? ' ASC' : ' DESC');
-		$sql = "SELECT {$boundaryName} FROM {$table} ORDER BY {$order} LIMIT 0,1";
+		$sql = "SELECT `{$boundaryName}` FROM {$table} ORDER BY {$order} LIMIT 0,1";
 		$result = $this->getDbConnection()->createCommand($sql)->queryScalar();
 		
 		return $result === false ? null : $result;
@@ -140,8 +140,8 @@ abstract class LevelModel extends CmsActiveRecord{
 			//set level info
 			$this->_levelInfo = array('fid'=>$targetNode->getPrimaryKey(),
 					'level'=>$targetNode->getAttribute('level')+1,
-					'lft'=>$targetRgt+1,
-					'rgt'=>$targetRgt+2
+					'lft'=>$targetRgt,
+					'rgt'=>$targetRgt+1
 			);
 		}
 		return true;
@@ -165,12 +165,41 @@ abstract class LevelModel extends CmsActiveRecord{
 			$targetNode = $this->findByPk($targetNode);
 			
 			$preorderTree = $this->findChildrenInPreorder($subtreeRoot);
-			array_unshift($preorderTree,$subtreeRoot);
 			
 			$this->updateTreeOnDelete($subtreeRoot);
 			if ( $targetNode !== null ){//refresh target level info after virtual delete
 				$targetNode->refresh();
 			}
+			
+			foreach ( $preorderTree as $preorderTreeNode ){
+				$parentKey = $preorderTreeNode['parent'];
+				$nodePk = $preorderTreeNode['record']->getPrimaryKey();
+				if ( $parentKey !== null ){
+					$targetNode = $preorderTree[$parentKey]['record'];
+				}
+				
+				$this->updateTreeOnCreate($targetNode);
+				if ( $parentKey !== null ){
+					$lft = $this->_levelInfo['lft'];
+					$rgt = $this->_levelInfo['rgt'];
+					$tmpParentKey = $parentKey;
+					$preorderTreeNode['record']->setAttribute('rgt',$rgt);
+					do{
+						++$rgt;
+						$preorderTree[$tmpParentKey]['record']->setAttributes(array(
+								'rgt' => $rgt
+						));
+						$refreshInfo[$tmpParentKey]['data']['rgt'] = $rgt;
+						$tmpParentKey = $preorderTree[$tmpParentKey]['parent'];
+					}while ( $tmpParentKey !== null );
+					
+				}else {
+					$preorderTreeNode['record']->setAttributes($this->_levelInfo);
+				}
+				
+				$refreshInfo['n'.$nodePk] = array('pk'=>$nodePk,'data'=>$this->_levelInfo);
+			}
+			var_dump($refreshInfo);return false;
 			
 			$prev = $preorderTree[0];
 			foreach ( $preorderTree as $key => $preorderTreeNode ){
@@ -215,19 +244,25 @@ abstract class LevelModel extends CmsActiveRecord{
 	 * update preorder tree before delete
 	 * @param CActiveRecord $subtreeRoot
 	 * @param boolean $returnCommand return update command if true
+	 * @param $disableChildren update children's lft and rgt to an impossible value
 	 * @return mixed
 	 */
-	public function updateTreeOnDelete($subtreeRoot,$returnCommand=false){
+	public function updateTreeOnDelete($subtreeRoot,$returnCommand=false,$disableChildren=true){
 		$subtreeRoot = $this->findByPk($subtreeRoot);
 		if ( $subtreeRoot === null ){
 			return false;
 		}
 		
 		$table = $this->getMetaData()->tableSchema->rawName;
+		$subtreeRootLft = $subtreeRoot->getAttribute('lft');
 		$subtreeRootRgt = $subtreeRoot->getAttribute('rgt');
 		
 		$decrease = 2 * ($this->countTreeByBoundary($subtreeRoot) + 1);
-		$sql = "UPDATE {$table} SET `lft`=`lft`-{$decrease} WHERE `lft`>{$subtreeRootRgt};UPDATE {$table} SET `rgt`=`rgt`-{$decrease} WHERE `rgt`>={$subtreeRootRgt};";
+		$sql = "UPDATE {$table} SET `lft`=`lft`-{$decrease} WHERE `lft`>{$subtreeRootRgt};";
+		$sql .= "UPDATE {$table} SET `rgt`=`rgt`-{$decrease} WHERE `rgt`>={$subtreeRootRgt};";
+		if ( $disableChildren === true ){
+			$sql .= "UPDATE {$table} SET `lft`=-1,`rgt`=-1 WHERE `lft`>{$subtreeRootLft} AND `rgt`<{$subtreeRootRgt};";
+		}
 		$command = $this->getDbConnection()->createCommand($sql);
 		if ( $returnCommand === true ){
 			return $command;
@@ -342,7 +377,7 @@ abstract class LevelModel extends CmsActiveRecord{
 	 * @param mixed $node CActiveRecord or int
 	 * @param mixed $condition string or CDbCeriteria
 	 * @param array $params
-	 * @return array
+	 * @return CActiveRecord[]
 	 */
 	public function findChildrenByBoundary($node,$condition='',$params=array()){
 		$node = $this->findByPk($node);
@@ -358,7 +393,7 @@ abstract class LevelModel extends CmsActiveRecord{
 	 * @param mixed $parent CActiveRecord or int
 	 * @param mixed $condition string or CDbCeriteria
 	 * @param array $params
-	 * @return array
+	 * @return CActiveRecord[]
 	 */
 	public function findChildrenByParent($parent,$condition='',$params=array()){
 		$parent = $this->findByPk($parent);
@@ -372,7 +407,7 @@ abstract class LevelModel extends CmsActiveRecord{
 	/**
 	 * find children whose boundary is between $node->lft and $node->rgt.And returns a preorder tree.
 	 * @param mixed $node CActiveRecord or int
-	 * @return array those record is order by lft.
+	 * @return array[string,CActiveRecord] those record are orderd in lft ASC.
 	 */
 	public function findChildrenInPreorder($node){
 		$node = $this->findByPk($node);
@@ -380,7 +415,28 @@ abstract class LevelModel extends CmsActiveRecord{
 			return null;
 		}
 		$findCondition = "`lft`>{$node->getAttribute('lft')} AND `rgt`<{$node->getAttribute('rgt')}";
-		return $this->findChildren($findCondition,array('order'=>'`lft` ASC'));
+		$children = $this->findChildren($findCondition,array('order'=>'`lft` ASC'));
+		
+		$preorderTree = array();
+		$parentsMap = array();
+		
+		$preorderTree['n'.$node->getPrimaryKey()] = array('parent'=>null,'record'=>$node);
+		$prev = $node;
+		foreach ( $children as $child ){
+			$nodeKey = 'n'.$child->getPrimaryKey();
+			if ( $this->isParent($prev,$child) ){
+				$parentKey = 'n'.$prev->getPrimaryKey();
+				if ( !in_array($parentKey,$parentsMap) ){
+					$parentsMap[] = $parentKey;
+				}
+			}else {
+				$parentKey = 'n'.$child->getAttribute('fid');
+			}
+			$preorderTree[$nodeKey] = array('parent'=>$parentKey,'record'=>$child);
+			$prev = $child;
+		}
+		
+		return $preorderTree;
 	}
 	
 	/**
@@ -388,6 +444,7 @@ abstract class LevelModel extends CmsActiveRecord{
 	 * @param string $findCondition
 	 * @param mixed $criteria string or array or CDbCriteria
 	 * @param array $params
+	 * @return CActiveRecord[]
 	 */
 	public function findChildren($findCondition,$criteria='',$params=array()){
 		if ( is_array($criteria) ){

@@ -17,4 +17,17 @@ class CmsActiveRecord extends CActiveRecord{
 			return $pk;
 		}
 	}
+	
+	/**
+	 * @return CDbTransaction
+	 */
+	public function getTransaction(){
+		$connection = $this->getDbConnection();
+		$transaction = $connection->getCurrentTransaction();
+		if ( $transaction === null ){
+			$transaction = $connection->beginTransaction();
+		}
+		
+		return $transaction;
+	}
 }
