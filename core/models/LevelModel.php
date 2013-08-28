@@ -121,9 +121,10 @@ abstract class LevelModel extends CmsActiveRecord{
 	/**
 	 * update preorder tree before insert
 	 * @param CAcvtiveRecord $targetNode
-	 * @return boolean
+	 * @param boolean $returnCommand
+	 * @return boolean|CDbCommand
 	 */
-	public function updateTreeOnCreate($targetNode=null){
+	public function updateTreeOnCreate($targetNode=null,$returnCommand=false){
 		$targetNode = $this->findByPk($targetNode);
 		if ( $targetNode === null ){
 			$rightPole = $this->getBoundaryPole('rgt');
@@ -136,13 +137,20 @@ abstract class LevelModel extends CmsActiveRecord{
 			$table = $this->getMetaData()->tableSchema->rawName;
 			$targetRgt = $targetNode->getAttribute('rgt');
 			$sql = "UPDATE {$table} SET `lft`=`lft`+2 WHERE `lft`>{$targetRgt};UPDATE {$table} SET `rgt`=`rgt`+2 WHERE `rgt`>={$targetRgt};";
-			$this->getDbConnection()->createCommand($sql)->execute();
+			$command = $this->getDbConnection()->createCommand($sql);
 			//set level info
 			$this->_levelInfo = array('fid'=>$targetNode->getPrimaryKey(),
 					'level'=>$targetNode->getAttribute('level')+1,
 					'lft'=>$targetRgt,
 					'rgt'=>$targetRgt+1
 			);
+			
+			if ( $returnCommand === true ){
+				return $command;
+			}else {
+				$command->execute();
+			}
+			
 		}
 		return true;
 	}
@@ -171,6 +179,7 @@ abstract class LevelModel extends CmsActiveRecord{
 				$targetNode->refresh();
 			}
 			
+			$updateOnCreateommand = array();
 			foreach ( $preorderTree as $preorderTreeNode ){
 				$parentKey = $preorderTreeNode['parent'];
 				$nodePk = $preorderTreeNode['record']->getPrimaryKey();
@@ -178,7 +187,7 @@ abstract class LevelModel extends CmsActiveRecord{
 					$targetNode = $preorderTree[$parentKey]['record'];
 				}
 				
-				$this->updateTreeOnCreate($targetNode);
+				$updateOnCreateommand[] = $this->updateTreeOnCreate($targetNode,true);
 				if ( $parentKey !== null ){
 					$lft = $this->_levelInfo['lft'];
 					$rgt = $this->_levelInfo['rgt'];
@@ -200,6 +209,13 @@ abstract class LevelModel extends CmsActiveRecord{
 				$refreshInfo['n'.$nodePk] = array('pk'=>$nodePk,'data'=>$this->_levelInfo);
 			}
 			
+			$updateOnCreateSql = '';
+			foreach ( $updateOnCreateommand as $command ){
+				if ( is_object($command) ){
+					$updateOnCreateSql .= $command->getText();
+				}
+			}
+			
 			$updateSql = '';
 			$table = $this->getMetaData()->tableSchema;
 			foreach ( $refreshInfo as $count => $info ){
@@ -211,7 +227,11 @@ abstract class LevelModel extends CmsActiveRecord{
 				$data = null;
 			}
 			
-			$this->getCommandBuilder()->createSqlCommand($updateSql)->execute();
+			if ( !is_object($command) ){
+				$command = $this->getDbConnection()->createCommand();
+			}
+			$command->reset()->setText($updateOnCreateSql)->execute();
+			$command->reset()->setText($updateSql)->execute();
 			return true;
 		}else {
 			return false;
