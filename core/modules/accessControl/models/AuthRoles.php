@@ -68,7 +68,7 @@ class AuthRoles extends LevelModel
 		// class name for the relations automatically generated below.
 		return array(
 			'ApiUser' => array(self::MANY_MANY, 'ApiUser', '{{api_role}}(role_id, user_id)'),
-			'AuthGroup' => array(self::MANY_MANY, 'AuthGroups', '{{auth_gr}}(role_id, group_id)'),
+			'AuthGroup' => array(self::MANY_MANY, 'AuthGroups', '{{auth_group_role}}(role_id, group_id)'),
 			'AuthMutex1' => array(self::HAS_MANY, 'AuthMutex', 'role_one'),
 			'AuthMutex2' => array(self::HAS_MANY, 'AuthMutex', 'role_two'),
 			'AuthPermission' => array(self::MANY_MANY, 'AuthPermission', '{{auth_role_permission}}(role_id, permission_id)'),

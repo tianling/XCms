@@ -12,6 +12,7 @@
  *
  * The followings are the available columns in table '{{auth_operation}}':
  * @property string $id
+ * @property string $menu_level
  * @property string $operation_name
  * @property string $description
  * @property string $module
@@ -42,7 +43,7 @@ class AuthOperation extends CmsActiveRecord
 			array('operation_name, controller, action', 'required'),
 			array('operation_name', 'length', 'max'=>20),
 			array('module, controller, action', 'length', 'max'=>30),
-			array('description', 'safe'),
+			array('description,menu_level', 'safe'),
 			// The following rule is used by search().
 			// @todo Please remove those attributes that should not be searched.
 			array('id, operation_name, description, module, controller, action', 'safe', 'on'=>'search'),
@@ -68,6 +69,7 @@ class AuthOperation extends CmsActiveRecord
 	{
 		return array(
 			'id' => 'ID',
+			'menu_level' => 'Menu Level',
 			'operation_name' => 'Operation Name',
 			'description' => 'Description',
 			'module' => 'Module',

@@ -57,14 +57,13 @@ abstract class LevelModel extends CmsActiveRecord{
 			return false;
 		}else {
 			$transaction = $this->getTransaction();
-			
 			try {
-				$updateTreeCommand = $this->updateTreeOnDelete($record,true);
-				$effctRow = $this->deleteChildren($record);
-				$updateTreeCommand->execute();
+				$this->updateTreeOnDelete($record);
+				$effctRow = $this->deleteChildren($record,true);
 				$effctRow += parent::deleteByPk($pk,$condition,$params);
 				if ( $effctRow > 0 ){
 					$transaction->commit();
+					return true;
 				}else {
 					$transaction->rollback();
 				}
@@ -81,12 +80,17 @@ abstract class LevelModel extends CmsActiveRecord{
 	 * @param CActiveRecord $node
 	 * @return boolean
 	 */
-	public function deleteChildren($node=null){
+	public function deleteChildren($node=null,$childrenDisabled=false){
 		$node = $this->findByPk($node);
 		if ( $node === null ){
 			return false;
 		}
-		return $this->deleteAll("`lft`>{$node->lft} AND `rgt`<{$node->rgt}");
+		if ( $childrenDisabled === true ){
+			$condition = "`lft`=-1 AND `rgt`=-1";
+		}else {
+			$condition = "`lft`>{$node->lft} AND `rgt`<{$node->rgt}";
+		}
+		return $this->deleteAll($condition);
 	}
 	
 	/**
@@ -230,8 +234,7 @@ abstract class LevelModel extends CmsActiveRecord{
 			if ( !is_object($command) ){
 				$command = $this->getDbConnection()->createCommand();
 			}
-			$command->reset()->setText($updateOnCreateSql)->execute();
-			$command->reset()->setText($updateSql)->execute();
+			$command->reset()->setText($updateOnCreateSql.$updateSql)->execute();
 			return true;
 		}else {
 			return false;

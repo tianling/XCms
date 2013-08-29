@@ -26,14 +26,6 @@ class AuthManager extends CApplicationComponent{
 	const RESOURCE_TYPE 	= 'ResourceType';
 	const ROLE 				= 'Roles';
 	
-	const ACCESS_OPERATION 	= 'operationAccess';
-	const ACCESS_RESOURCE 	= 'resourceAccess';
-	
-	/**
-	 * @var RightCalculator
-	 */
-	private $_rightCalculator=null;
-	
 	public function init(){
 		Yii::import('cms.modules.accessControl.components.*');
 		Yii::import('cms.modules.accessControl.models.*');
@@ -43,17 +35,21 @@ class AuthManager extends CApplicationComponent{
 	 * @return RightCalculator
 	 */
 	public function getCalculator(){
-		if ( $this->_rightCalculator === null ){
-			$this->_rightCalculator = RightCalculator::getInstance();
-		}
-		return $this->_rightCalculator;
+		return RightCalculator::getInstance();
+	}
+	
+	/**
+	 * @return AuthAssigner
+	 */
+	public function getAssigner(){
+		return AuthAssigner::getInstance();
 	}
 	
 	/**
 	 * generate a series of record.
 	 * @param array $allData
 	 * @param string $type
-	 * @return array. return FALSE if generate encounterd an error or @param $type is NULL.
+	 * @return CActiveRecord[]. return FALSE if generate encounterd an error or @param $type is NULL.
 	 */
 	public function generateRecords($allData,$type=null){
 		$result = array();
@@ -87,7 +83,7 @@ class AuthManager extends CApplicationComponent{
 	 * generate a record.
 	 * @param string $type
 	 * @param array $data
-	 * @return mixed
+	 * @return CActiveRecord
 	 */
 	public function generate($type,$data){
 		$class = $this->typePrefix.$type;
@@ -98,12 +94,29 @@ class AuthManager extends CApplicationComponent{
 		}
 		
 		$object->attributes = $data;
-		if ( $object->validate() ){
-			$object->save();
+		if ( $object->save() ){
+			return $object;
 		}else {
 			return false;
 		}
-		return $object;
+		
+	}
+	
+	/**
+	 * @param string $type
+	 * @param int $pk
+	 * @param string $condition
+	 * @param array $params
+	 * @return CActiveRecord.return NULL if model is not found
+	 */
+	public function getItem($type,$pk,$condition='',$params=array()){
+		$class = $this->typePrefix.$type;
+		try {
+			$model = $class::model();
+		}catch (Exception $e){
+			return null;
+		}
+		return $model->findByPk($pk,$condition,$params);
 	}
 	
 	/**
@@ -121,6 +134,9 @@ class AuthManager extends CApplicationComponent{
 		$action = $operation['action'];
 		$op = AuthOperation::model()->with('AuthPermissions')->findUniqueRecord($module, $controller, $action);
 		
+		if ( $op === null ){
+			return false;
+		}
 		$opPermissions = $op->AuthPermisons;
 		foreach ( $opPermissions as $opPermission ){
 			$key = 'p'.$opPermission->getPrimaryKey();
