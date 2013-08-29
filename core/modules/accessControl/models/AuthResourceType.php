@@ -36,8 +36,9 @@ class AuthResourceType extends CmsActiveRecord
 		// NOTE: you should only define rules for those attributes that
 		// will receive user inputs.
 		return array(
-			array('type_name', 'required'),
+			array('type_name,table_name', 'required'),
 			array('type_name', 'length', 'max'=>20),
+			array('table_name', 'length', 'max'=>40),
 			// The following rule is used by search().
 			// @todo Please remove those attributes that should not be searched.
 			array('id, type_name', 'safe', 'on'=>'search'),

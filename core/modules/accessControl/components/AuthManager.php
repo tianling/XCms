@@ -55,9 +55,9 @@ class AuthManager extends CApplicationComponent{
 		$result = array();
 		
 		foreach ( $allData as $data ){
-			if ( isset($data['dataObjectType']) ){
-				$dataObjectType = $data['dataObjectType'];
-				unset($data['dataObjectType']);
+			if ( isset($data['type']) ){
+				$dataObjectType = $data['type'];
+				unset($data['type']);
 			}elseif ( $type !== null ){
 				$dataObjectType = $type;
 			}else {
@@ -94,12 +94,13 @@ class AuthManager extends CApplicationComponent{
 		}
 		
 		$object->attributes = $data;
-		if ( $object->save() ){
-			return $object;
-		}else {
-			return false;
+		try{
+			if ( $object->save() ){
+				return $object;
+			}
+		}catch ( Exception $e ){
 		}
-		
+		return false;
 	}
 	
 	/**

@@ -30,4 +30,16 @@ class CmsActiveRecord extends CActiveRecord{
 		
 		return $transaction;
 	}
+	
+	/**
+	 * @param string $tableName
+	 * @return string
+	 */
+	public function tableRawName($tableName=null){
+		if ( $tableName !== null ){
+			return $this->getDbConnection()->getSchema()->getTable($tableName)->rawName;
+		}else {
+			return $this->getMetaData()->tableSchema->rawName;
+		}
+	}
 }
