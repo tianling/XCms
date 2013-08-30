@@ -41,7 +41,7 @@
  * @property UserTrendsReply[] $userTrendsReplies
  * @property UserTrends[] $UserTrends
  */
-class UserModel extends CmsActiveRecord
+class UserModel extends SingleInheritanceModel
 {
 	/**
 	 * @return string the associated database table name
