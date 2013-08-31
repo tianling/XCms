@@ -20,13 +20,12 @@ class AuthManagerTest extends CDbTestCase{
 		$object = $this->auth->generate(AuthManager::ROLE,$roleData);
 		
 		$data = array(
-				//array('type'=>AuthManager::ROLE,'fid'=>Yii::app()->db->lastInsertId,'role_name'=>'phpunit test child role'),
+				array('type'=>AuthManager::ROLE,'fid'=>Yii::app()->db->lastInsertId,'role_name'=>'phpunit test child role'),
 				array('type'=>AuthManager::GROUP,'group_name'=>'phpunit test group'),
-				//array('type'=>AuthManager::OPERATION,'operation_name'=>'phpunit operation','module'=>'testModule','controller'=>'testController','action'=>'testAction'),
+				array('type'=>AuthManager::OPERATION,'operation_name'=>'phpunit operation','module'=>'testModule','controller'=>'testController','action'=>'testAction'),
 				//array('type'=>AuthManager::PERMISSION,'operation_id'=>Yii::app()->db->lastInsertId,'permission_name'=>'phpunitPermission'),
-				//array('type'=>AuthManager::RESOURCE_TYPE,'type_name'=>'phpunitResourceType','table_name'=>'no name'),
+				array('type'=>AuthManager::RESOURCE_TYPE,'type_name'=>'phpunitResourceType','table_name'=>'no name'),
 				//array('type'=>AuthManager::RESOURCE,'type_id'=>Yii::app()->db->lastInsertId,'resource_name'=>'phpunit test resource'),
-				
 		);
 		$this->assertInstanceOf('CmsActiveRecord',$object);
 		$object->delete();

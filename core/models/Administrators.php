@@ -30,7 +30,8 @@ class Administrators extends SingleInheritanceModel
 		// NOTE: you should only define rules for those attributes that
 		// will receive user inputs.
 		return array(
-			array('id', 'required'),
+			array('id', 'required','on'=>'update'),
+			array('id','safe','on'=>'create'),
 			array('id', 'length', 'max'=>11),
 			array('surname, name', 'length', 'max'=>10),
 			// The following rule is used by search().
