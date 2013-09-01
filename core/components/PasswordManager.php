@@ -30,6 +30,8 @@ class PasswordManager extends CApplicationComponent{
 	public function decideType(){
 		if ( $this->useType !== self::TYPE_CMS && $this->chechBlowfish() ){
 			$this->useType = self::TYPE_YII;
+		}else {
+			$this->useType = self::TYPE_CMS;
 		}
 	}
 	

@@ -70,6 +70,7 @@ class ConfigBase{
 				'cms.components.behaviors.*',
 				'cms.components.filters.*',
 				'cms.components.pagers.*',
+				'cms.components.exceptions.*',
 				'cms.extensions.*',
 				'cms.models.*',
 				'cms.widgets.*',

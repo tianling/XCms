@@ -163,9 +163,11 @@ class UserModel extends SingleInheritanceModel
 	
 	protected function beforeSave(){
 		$password = $this->getAttribute('password');
-		$passwordManager = Yii::app()->getComponent('passwordManager');
-		$new = $passwordManager->generate($password);
-		$this->setAttribute('password',$new['password']);
+		if ( $password !== null ){
+			$passwordManager = Yii::app()->getComponent('passwordManager');
+			$new = $passwordManager->generate($password);
+			$this->setAttribute('password',$new['password']);
+		}
 		return parent::beforeSave();
 	}
 
