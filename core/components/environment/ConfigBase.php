@@ -83,12 +83,6 @@ class ConfigBase{
 					'guestName' => 'Guest',
 				),
 		
-				'urlManager'=>array(
-					'urlFormat'=>'path',
-					'urlSuffix' => '.html',
-					'showScriptName' => false,
-				),
-		
 				'authManager' => array(
 					'class' => 'cms.modules.accessControl.components.AuthManager'
 				),

@@ -42,10 +42,10 @@ class AuthManagerTest extends CDbTestCase{
 	}
 	
 	public function testUpdateLevelModel(){
-// 		$role = AuthRoles::model()->findByPk(2);
-// 		$role->fid = 0;
-//  		$role->save();
-		//$r = $this->auth->checkAccess(array('module'=>'','controller'=>'','action'=>''),1);
-		//var_dump($r);
+ 		$role = AuthRoles::model()->findByPk(2);
+ 		$role->fid = 0;
+	  	$role->save();
+		$r = $this->auth->checkAccess(array('module'=>'','controller'=>'','action'=>''),1);
+		var_dump($r);
 	}
 }

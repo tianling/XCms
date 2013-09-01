@@ -27,6 +27,10 @@ class CmsController extends CController{
 	 */
 	public $app;
 	/**
+	 * @var CHttpRequest
+	 */
+	public $request;
+	/**
 	 * when a action is defined as a CAction
 	 * then that action's name is his name and this subfix
 	 * @var string $actionSubfix used in @method self::actions()
@@ -39,6 +43,82 @@ class CmsController extends CController{
 	
 	public function init(){
 		$this->app = Yii::app();
+		$this->request = Yii::app()->getRequest();
+	}
+	
+	/**
+	 * @param string $name
+	 * @param mixed $defaultValue
+	 * @return mixed
+	 */
+	public function getPost($name=null,$defaultValue=null){
+		if ( $name !== null ){
+			return $this->request->getPost($name,$defaultValue);
+		}else {
+			return $_POST;
+		}
+	}
+	
+	/**
+	 * @param string $name
+	 * @param mixed $defaultValue
+	 * @return mixed
+	 */
+	public function getQuery($name=null,$defaultValue=null){
+		if ( $name !== null ){
+			return  $this->request->getQuery($name,$defaultValue);
+		}else {
+			return $_GET;
+		}
+	}
+	
+	/**
+	 * @param string $name
+	 * @param mixed $defaultValue
+	 * @return mixed
+	 */
+	public function getRestParam($name=null,$defaultValue=null){
+		$result = $this->request->getRestParams();
+		if ( $name !== null ){
+			return isset($result[$name]) ? $result[$name] : $defaultValue;
+		}
+		return $result;
+	}
+	
+	/**
+	 * @param string $name
+	 * @param mixed $defaultValue
+	 * @return mixed
+	 */
+	public function getRequestParam($name,$defaultValue=null){
+		return $this->request->getParam($name,$defaultValue);
+	}
+	
+	protected function response($code=200,$body='',$format='json',$contentType='text/html'){
+		$status_header = 'HTTP/1.1 '.$code.' '.$this->getStatusCodeMsg($code);
+		header($status_header);
+		header('Content-type: '.$contentType);
+		if ( $format === 'json' ){
+			echo json_encode($body);
+		}else {
+			echo $body;
+		}
+		Yii::app()->end();
+	}
+	
+	protected function getStatusCodeMsg($code){
+		$codes = Array(
+				200 => 'OK',
+				400 => 'Bad Request',
+				401 => 'Unauthorized',
+				402 => 'Payment Required',
+				403 => 'Forbidden',
+				404 => 'Not Found',
+				405 => 'Method Not Allowed',
+				500 => 'Internal Server Error',
+				501 => 'Not Implemented',
+		);
+		return (isset($codes[$code])) ? $codes[$code] : '';
 	}
 	
 	/**

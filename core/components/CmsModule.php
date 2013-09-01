@@ -6,6 +6,6 @@
  * Date 2013-8-12
  * Encoding UTF-8
  */
-class CmsModule extends CModule{
+class CmsModule extends CWebModule{
 	
 }

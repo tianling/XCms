@@ -59,18 +59,18 @@ class UserModel extends SingleInheritanceModel
 		// NOTE: you should only define rules for those attributes that
 		// will receive user inputs.
 		return array(
-			array('nickname, password, last_login_time, last_login_ip', 'required'),
+			array('nickname, password', 'required'),
+			array('last_login_time, last_login_ip', 'required', 'on'=>'update'),
 			array('locked', 'numerical', 'integerOnly'=>true),
 			array('nickname', 'length', 'max'=>20),
 			array('realname', 'length', 'max'=>5),
-			array('email', 'length', 'max'=>50),
 			array('password', 'length', 'max'=>255),
 			array('salt', 'length', 'max'=>128),
 			array('last_login_time', 'length', 'max'=>11),
 			array('last_login_ip', 'length', 'max'=>15),
 			// The following rule is used by search().
 			// @todo Please remove those attributes that should not be searched.
-			array('id, nickname, realname, email, password, salt, last_login_time, last_login_ip, locked', 'safe', 'on'=>'search'),
+			array('id, nickname, realname, password, salt, last_login_time, last_login_ip, locked', 'safe', 'on'=>'search'),
 		);
 	}
 
@@ -159,6 +159,14 @@ class UserModel extends SingleInheritanceModel
 		return new CActiveDataProvider($this, array(
 			'criteria'=>$criteria,
 		));
+	}
+	
+	protected function beforeSave(){
+		$password = $this->getAttribute('password');
+		$passwordManager = Yii::app()->getComponent('passwordManager');
+		$new = $passwordManager->generate($password);
+		$this->setAttribute('password',$new['password']);
+		return parent::beforeSave();
 	}
 
 	/**
