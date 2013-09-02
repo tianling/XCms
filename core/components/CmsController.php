@@ -77,6 +77,24 @@ class CmsController extends CController{
 	 * @param mixed $defaultValue
 	 * @return mixed
 	 */
+	public function getPut($name,$defaultValue=null){
+		return $this->request->getPut($name,$defaultValue);
+	}
+	
+	/**
+	 * @param string $name
+	 * @param mixed $defaultValue
+	 * @return mixed
+	 */
+	public function getDelete($name,$defaultValue=null){
+		return $this->request->getDelete($name,$defaultValue);
+	}
+	
+	/**
+	 * @param string $name
+	 * @param mixed $defaultValue
+	 * @return mixed
+	 */
 	public function getRestParam($name=null,$defaultValue=null){
 		$result = $this->request->getRestParams();
 		if ( $name !== null ){

@@ -79,17 +79,15 @@ class ConfigBase{
 				
 			'components'=>array(
 				'user'=>array(
-					'allowAutoLogin' => true,
-					//'class' => 'dsdsadsa',//ddadsadsadadsada
-					'guestName' => 'Guest',
+					'class' => 'cms.modules.accessControl.components.AuthUser'
 				),
 		
 				'authManager' => array(
 					'class' => 'cms.modules.accessControl.components.AuthManager'
 				),
 					
-				'passwordManager' => array(
-					'class' => 'cms.components.PasswordManager',
+				'securityManager' => array(
+					'class' => 'cms.components.CmsSecurity',
 				),
 		
 //				'errorHandler'=>array(

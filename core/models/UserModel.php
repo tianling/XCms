@@ -64,13 +64,13 @@ class UserModel extends SingleInheritanceModel
 			array('locked', 'numerical', 'integerOnly'=>true),
 			array('nickname', 'length', 'max'=>20),
 			array('realname', 'length', 'max'=>5),
-			array('password', 'length', 'max'=>255),
-			array('salt', 'length', 'max'=>128),
+			array('password', 'length', 'max'=>60),
 			array('last_login_time', 'length', 'max'=>11),
 			array('last_login_ip', 'length', 'max'=>15),
+			array('uuid','safe'),
 			// The following rule is used by search().
 			// @todo Please remove those attributes that should not be searched.
-			array('id, nickname, realname, password, salt, last_login_time, last_login_ip, locked', 'safe', 'on'=>'search'),
+			array('id, nickname, realname, password, uuid, last_login_time, last_login_ip, locked', 'safe', 'on'=>'search'),
 		);
 	}
 
@@ -121,7 +121,7 @@ class UserModel extends SingleInheritanceModel
 			'realname' => 'Realname',
 			'email' => 'Email',
 			'password' => 'Password',
-			'salt' => 'Salt',
+			'uuid' => 'Uuid',
 			'last_login_time' => 'Last Login Time',
 			'last_login_ip' => 'Last Login Ip',
 			'locked' => 'Locked',
@@ -164,9 +164,16 @@ class UserModel extends SingleInheritanceModel
 	protected function beforeSave(){
 		$password = $this->getAttribute('password');
 		if ( $password !== null ){
-			$passwordManager = Yii::app()->getComponent('passwordManager');
-			$new = $passwordManager->generate($password);
-			$this->setAttribute('password',$new['password']);
+			$securityManager = Yii::app()->getSecurityManager();
+			$new = $securityManager->generate($password);
+			$uuidRawData = array(
+					$new,
+					$this->getAttribute('mobile'),
+					$this->getAttribute('email')
+			);
+			$uuid = $securityManager->generateUUID($uuidRawData);
+			$this->setAttribute('password',$new);
+			$this->setAttribute('uuid',$uuid);
 		}
 		return parent::beforeSave();
 	}
