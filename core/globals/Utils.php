@@ -167,7 +167,7 @@ class Utils{
 	 * Generate Unique string
 	 */
 	public static function genUniqueString($len=8) {
-		$hex = md5(param('salt-file') . uniqid("", true));
+		$hex = md5(self::param('salt-file') . uniqid("", true));
 	
 		$pack = pack('H*', $hex);
 		$tmp =  base64_encode($pack);
@@ -177,7 +177,7 @@ class Utils{
 		$len = max(4, min(128, $len));
 	
 		while (strlen($uid) < $len)
-			$uid .= gen_uuid(22);
+			$uid .= self::genUniqueString(22);
 	
 		$res = substr($uid, 0, $len);
 		return $res;
@@ -320,7 +320,7 @@ class Utils{
 	public static function plaintext($s)
 	{
 		$s = strip_tags($s);
-		$s = xss_clean($s);
+		$s = self::xss_clean($s);
 		return $s;
 	}
 	
@@ -362,7 +362,7 @@ class Utils{
 	 * @param array $params
 	 */
 	public static function curl_post_async($url, $params){
-		curl_async('POST', $url, $params);
+		self::curl_async('POST', $url, $params);
 	}
 	
 	/**
@@ -371,7 +371,7 @@ class Utils{
 	 * @param array $params
 	 */
 	public static function curl_get_async($url, $params){
-		curl_async('GET', $url, $params);
+		self::curl_async('GET', $url, $params);
 	}
 	
 	/**

@@ -94,20 +94,23 @@ class CmsController extends CController{
 		return $this->request->getParam($name,$defaultValue);
 	}
 	
-	protected function response($code=200,$body='',$format='json',$contentType='text/html'){
+	protected function response($code=200,$message='',$data=null,$format='json',$contentType='text/html'){
 		$status_header = 'HTTP/1.1 '.$code.' '.$this->getStatusCodeMsg($code);
 		header($status_header);
 		header('Content-type: '.$contentType);
+		$response = array(
+				'status' => $code,
+				'message' => $message,
+				'data' => $data
+		);
 		if ( $format === 'json' ){
-			echo json_encode($body);
-		}else {
-			echo $body;
+			echo json_encode($response);
 		}
 		Yii::app()->end();
 	}
 	
 	protected function getStatusCodeMsg($code){
-		$codes = Array(
+		static $codes = Array(
 				200 => 'OK',
 				400 => 'Bad Request',
 				401 => 'Unauthorized',

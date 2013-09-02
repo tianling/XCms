@@ -23,4 +23,12 @@ class AuthUser extends CWebUser{
 			$this->_access[$operationKey] = $access;
 		}
 	}
+	
+	public function beforeLogin($id, $states, $fromCookie){
+		//restore from cookie as a guest without autoRenewCookie
+		if ( $fromCookie === true && $this->autoRenewCookie === false ){
+			$this->renewCookie();
+		}
+		return true;
+	}
 }
