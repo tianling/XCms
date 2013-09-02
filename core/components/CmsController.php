@@ -46,6 +46,12 @@ class CmsController extends CController{
 		$this->request = Yii::app()->getRequest();
 	}
 	
+	public function filters(){
+		return array(
+				array('cms.components.filters.HasLogined')
+		);
+	}
+	
 	/**
 	 * @param string $name
 	 * @param mixed $defaultValue
@@ -166,5 +172,13 @@ class CmsController extends CController{
 	 */
 	public function getActionClass(){
 		return array();
+	}
+	
+	public function loginRequired(){
+		
+	}
+	
+	public function accessDenied(){
+		
 	}
 }
