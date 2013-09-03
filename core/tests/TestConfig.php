@@ -15,6 +15,9 @@ class TestConfig extends ConfigBase{
 								'password'=>'lancelot!410',
 								'ipFilters'=>array('127.0.0.1','::1'),
 						),
+						'user' => array(
+								'class' => 'application.modules.user.UserModule'
+						),
 				),
 				'components' => array(
 						'log'=>array(
@@ -28,13 +31,13 @@ class TestConfig extends ConfigBase{
 						),
 						'db' => array(
 								'class' => 'system.db.CDbConnection',
-								'tablePrefix' => 'xcms_',
 								'autoConnect' => false,
-								'connectionString' => 'mysql:host=www.caixiao2.com;dbname=shequbao',
+								'connectionString' => 'mysql:host=121.199.54.87;dbname=shequbao',
 								'emulatePrepare' => true,
 								'username' => 'sqb-sandbox',
-								'password' => 'sqb-sandbox@caixiao2',
+								'password' => 'sqb-sandbox@aliyun',
 								'charset' => 'utf8',
+								'tablePrefix' => 'xcms_'
 						),
 				),
 		);

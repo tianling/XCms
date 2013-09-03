@@ -44,6 +44,14 @@
 class UserModel extends SingleInheritanceModel
 {
 	/**
+	 * @var boolean
+	 */
+	private $_changeUUID = false;
+	/**
+	 * @var array
+	 */
+	private $_uuidDependence = array('mobile','email','password');
+	/**
 	 * @return string the associated database table name
 	 */
 	public function tableName()
@@ -162,19 +170,16 @@ class UserModel extends SingleInheritanceModel
 	}
 	
 	protected function beforeSave(){
-		$password = $this->getAttribute('password');
-		if ( $password !== null ){
-			$securityManager = Yii::app()->getSecurityManager();
-			$new = $securityManager->generate($password);
-			$uuidRawData = array(
-					$new,
-					$this->getAttribute('mobile'),
-					$this->getAttribute('email')
-			);
-			$uuid = $securityManager->generateUUID($uuidRawData);
-			$this->setAttribute('password',$new);
+		if ( $this->getIsNewRecord() ){
+			$this->changePassword($this->getAttribute('password'));
+		}
+		
+		if ( $this->getIsNewRecord() || $this->_changeUUID === true ){
+			$uuidRawData = $this->getAttributes($this->_uuidDependence);
+			$uuid = Yii::app()->getSecurityManager()->generateUUID($uuidRawData);
 			$this->setAttribute('uuid',$uuid);
 		}
+		
 		return parent::beforeSave();
 	}
 
@@ -187,5 +192,35 @@ class UserModel extends SingleInheritanceModel
 	public static function model($className=__CLASS__)
 	{
 		return parent::model($className);
+	}
+	
+	/**
+	 * @param array $uuidRawData
+	 * @param array $attributes
+	 */
+	public function changeUUID($uuidRawData,$attributes){
+		if ( $this->_changeUUID === true ){
+			return;
+		}
+		foreach ( $this->_uuidDependence as $dependence ){
+			if ( isset($uuidRawData[$dependence]) ){
+				if ( $dependence === 'password' && !Yii::app()->getSecurityManager()->verify($uuidRawData[$dependence],$attributes[$dependence]) ){//password
+					$this->_changeUUID = true;
+					return;
+				}elseif ( $uuidRawData[$dependence] !== $attributes[$dependence] ){
+					$this->_changeUUID = true;
+					return;
+				}
+			}
+		}
+	}
+	
+	/**
+	 * @param string $newPassword
+	 */
+	public function changePassword($newPassword){
+		$security = Yii::app()->getSecurityManager();
+		$this->_changeUUID = true;
+		$this->setAttribute('password',$security->generate($newPassword));
 	}
 }

@@ -17,6 +17,28 @@ abstract class SingleInheritanceModel extends CmsActiveRecord{
 	private $_setParentBeforeGet = null;
 	
 	/**
+	 * @see CActiveRecord::__call()
+	 */
+	public function __call($name, $parameters){
+		try {
+			return parent::__call($name,$parameters);
+		}catch ( Exception $selfE ){
+			$parent = $this->getParentInUse();
+			if ( $parent !== null ){
+				if ( method_exists($parent,$name) ){
+					return call_user_func_array(array($parent,$name),$parameters);
+				}else {
+					try {
+						return $parent->__call($name,$parameters);
+					}catch ( Exception $e ){
+					}
+				}
+			}
+			throw $selfE;
+		}
+	}
+	
+	/**
 	 * get parent's attribute.you can access this attribute like a property
 	 * @param string $name
 	 */

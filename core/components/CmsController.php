@@ -48,7 +48,7 @@ class CmsController extends CController{
 	
 	public function filters(){
 		return array(
-				array('cms.components.filters.HasLogined')
+				'hasLogined' => array('cms.components.filters.HasLogined')
 		);
 	}
 	

@@ -25,6 +25,11 @@ class AuthUser extends CWebUser{
 	}
 	
 	public function beforeLogin($id, $states, $fromCookie){
+		if ( $fromCookie === true ){
+			if ( UserModel::model()->count("uuid='{$states['uuid']}'") !== 1 ){
+				return false;
+			}
+		}
 		//restore from cookie as a guest without autoRenewCookie
 		if ( $fromCookie === true && $this->autoRenewCookie === false ){
 			$this->renewCookie();
