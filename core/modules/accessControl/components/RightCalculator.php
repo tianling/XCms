@@ -87,7 +87,7 @@ class RightCalculator extends CComponent{
 		if ( empty($uid) || !is_int($uid) ){
 			throw new CException(Yii::t('auth','calculator_uid_set_wrong'));
 		}
-		$this->getUid() = $uid;
+		$this->_uid = $uid;
 	}
 	
 	/**

@@ -50,7 +50,7 @@ class UserModel extends SingleInheritanceModel
 	/**
 	 * @var array
 	 */
-	private $_uuidDependence = array('mobile','email','password');
+	protected $_uuidDependence = array('password');
 	/**
 	 * @return string the associated database table name
 	 */

@@ -13,6 +13,10 @@ abstract class LevelModel extends CmsActiveRecord{
 	 * @var array
 	 */
 	private $_levelInfo = array();
+	/**
+	 * @var int
+	 */
+	private $_impossibleValue = 0;
 	
 	public function insert($attributes=null){
 		$this->updateTreeOnCreate($this->getAttribute('fid'));
@@ -86,11 +90,27 @@ abstract class LevelModel extends CmsActiveRecord{
 			return false;
 		}
 		if ( $childrenDisabled === true ){
-			$condition = "`lft`=-1 AND `rgt`=-1";
+			$condition = "`lft`={$this->_impossibleValue} AND `rgt`={$this->_impossibleValue}";
 		}else {
 			$condition = "`lft`>{$node->lft} AND `rgt`<{$node->rgt}";
 		}
 		return $this->deleteAll($condition);
+	}
+	
+	/**
+	 * @param array $childData
+	 * @return CActiveRecord
+	 */
+	public function addChild($childData){
+		$childData['fid'] = $this->getPrimaryKey();
+		$class = get_class($this);
+		$object = new $class();
+		$object->attributes = $childData;
+		if ( $object->save() ){
+			return $object;
+		}else {
+			return $object->getErrors();
+		}
 	}
 	
 	/**
@@ -262,7 +282,7 @@ abstract class LevelModel extends CmsActiveRecord{
 		$sql = "UPDATE {$table} SET `lft`=`lft`-{$decrease} WHERE `lft`>{$subtreeRootRgt};";
 		$sql .= "UPDATE {$table} SET `rgt`=`rgt`-{$decrease} WHERE `rgt`>={$subtreeRootRgt};";
 		if ( $disableChildren === true ){
-			$sql .= "UPDATE {$table} SET `lft`=-1,`rgt`=-1 WHERE `lft`>{$subtreeRootLft} AND `rgt`<{$subtreeRootRgt};";
+			$sql .= "UPDATE {$table} SET `lft`={$this->_impossibleValue},`rgt`={$this->_impossibleValue} WHERE `lft`>{$subtreeRootLft} AND `rgt`<{$subtreeRootRgt};";
 		}
 		$command = $this->getDbConnection()->createCommand($sql);
 		if ( $returnCommand === true ){

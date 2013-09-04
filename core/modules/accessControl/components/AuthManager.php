@@ -20,7 +20,6 @@ class AuthManager extends CApplicationComponent{
 	 */
 	const GROUP 			= 'Groups';
 	const OPERATION 		= 'Operation';
-	const PERMISSION 		= 'Permission';
 	const PROTECTED_TABLE 	= 'ProtectedTable';
 	const RESOURCE 			= 'Resource';
 	const RESOURCE_TYPE 	= 'ResourceType';

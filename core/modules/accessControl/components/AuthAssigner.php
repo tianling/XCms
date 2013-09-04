@@ -48,25 +48,16 @@ class AuthAssigner extends CComponent{
 	 * means user can be granted to group
 	 */
 	protected $_assignMap = array(
-			self::ITEM_USER => array(
-				self::ITEM_GROUP 		=> '{{user_group}}',
-				self::ITEM_ROLE 		=> '{{user_role}}',
-				self::ITEM_PERMISSION 	=> '{{auth_user_permission}}'
-			),
 			self::ITEM_GROUP => array(
 				self::ITEM_USER 		=> '{{user_group}}',
-				self::ITEM_ROLE 		=> '{{auth_group_role}}',
 			),
 			self::ITEM_ROLE => array(
 				self::ITEM_USER 		=> '{{user_role}}',
 				self::ITEM_GROUP 		=> '{{auth_group_role}}',
-				self::ITEM_PERMISSION 	=> '{{auth_role_permission}}'
 			),
 			self::ITEM_PERMISSION => array(
 				self::ITEM_USER 		=> '{{auth_user_permission}}',
 				self::ITEM_ROLE 		=> '{{auth_role_permission}}',
-				self::ITEM_OPERATION 	=> '{{auth_permission}}',
-				self::ITEM_RESOURCE 	=> '{{auth_permission}}'
 			),
 			self::ITEM_OPERATION => array(
 				self::ITEM_PERMISSION 	=> '{{auth_permission}}'
@@ -191,7 +182,11 @@ class AuthAssigner extends CComponent{
 			if(($column=$table->getColumn($name))!==null && ($value!==null || $column->allowNull))
 			{
 				$fields[]=$column->rawName;
-				$values[]=$value;
+				if ( $column->type === 'string' ){
+					$values[] = "'{$value}'";
+				}else {
+					$values[] = $value;
+				}
 			}
 		}
 		if($fields===array())
@@ -199,8 +194,13 @@ class AuthAssigner extends CComponent{
 			$pks=is_array($table->primaryKey) ? $table->primaryKey : array($table->primaryKey);
 			foreach($pks as $pk)
 			{
-				$fields[]=$table->getColumn($pk)->rawName;
-				$values[]=$data[$pk];
+				$column = $table->getColumn($pk);
+				$fields[]=$column->rawName;
+				if ( $column->type === 'string' ){
+					$values[] = "'{$data[$pk]}'";
+				}else {
+					$values[] = $data[$pk];
+				}
 			}
 		}
 		return array('fields'=>$fields,'values'=>$values);
