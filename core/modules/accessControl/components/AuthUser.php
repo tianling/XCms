@@ -6,22 +6,46 @@
  */
 class AuthUser extends CWebUser{
 	private $_access = array();
+	
+	public $accessCacherId = 'SessionCache';
+	
 	/**
 	 * check operation access
 	 * @param array $operation. contains 'module','controller','action'
+	 * @param array $params use to absorb params delivered in {@link CAccessControlFilter}
 	 * @param boolean $allowCaching
 	 * 
 	 */
-	public function checkAccess($operation,$allowCaching=true){
+	public function checkAccess($operation,$params=array(),$allowCaching=true){
 		if ( $allowCaching === true ){
 			$operationKey = md5(json_encode($operation));
-			return isset($this->_access[$operationKey]) ? $this->_access[$operationKey] : false;
+			$cachedAccess = $this->getCachedAccess($operationKey);
+			if ( $cachedAccess !== null ){
+				return $cachedAccess;
+			}
 		}
 		
-		$access = Yii::app()->getAuthManager()->checkAccess($operation,$this->getId());
+		$access = Yii::app()->getAuthManager()->checkAccess($operation,$this->getId()) !== false;
 		if ( $allowCaching === true ){
-			$this->_access[$operationKey] = $access;
+			$this->cacheAccess($operationKey,$access);
 		}
+		return $access;
+	}
+	
+	/**
+	 * @param string $key
+	 * @return boolean
+	 */
+	public function getCachedAccess($key){
+		return Yii::app()->session->itemAt($key);
+	}
+	
+	/**
+	 * @param string $key
+	 * @param boolean $data
+	 */
+	public function cacheAccess($key,$data){
+		Yii::app()->session->add($key,$data);
 	}
 	
 	public function beforeLogin($id, $states, $fromCookie){
