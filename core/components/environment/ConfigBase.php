@@ -51,7 +51,7 @@ class ConfigBase{
 			'basePath' => defined('BASE_PATH') ? BASE_PATH : dirname(__FILE__).DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..',
 			'id' => 'Powered By XCms',
 			'name' => 'XCms Application' ,
-			'sourceLanguage' => 'zh_cn',
+			'sourceLanguage' => 'en_us',
 			'language' => 'zh_cn',
 			
 			'defaultController' => 'site',
@@ -75,6 +75,12 @@ class ConfigBase{
 				'cms.models.*',
 				'cms.widgets.*',
 				'cms.globals.*',
+			),
+				
+			'modules' => array(
+				'accessControl' => array(
+					'class' => 'cms.modules.accessControl.AccessControlModule'
+				)
 			),
 				
 			'components'=>array(

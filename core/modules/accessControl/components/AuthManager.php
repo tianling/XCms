@@ -27,14 +27,16 @@ class AuthManager extends CApplicationComponent{
 	
 	public function init(){
 		Yii::import('cms.modules.accessControl.components.*');
+		Yii::import('cms.modules.accessControl.components.calculators.*');
 		Yii::import('cms.modules.accessControl.models.*');
+		Yii::app()->setComponent('rightCalculator',array('class'=>'accessControl.components.calculators.RightCalculatorAR'));
 	}
 	
 	/**
 	 * @return RightCalculator
 	 */
 	public function getCalculator(){
-		return RightCalculator::getInstance();
+		return Yii::app()->getComponent('rightCalculator');
 	}
 	
 	/**
@@ -137,13 +139,13 @@ class AuthManager extends CApplicationComponent{
 		if ( $op === null ){
 			return false;
 		}
-		$opPermissions = $op->AuthPermisons;
+		$opPermissions = $op->AuthPermissions;
 		foreach ( $opPermissions as $opPermission ){
 			$key = 'p'.$opPermission->getPrimaryKey();
 			$unsafePermissions[$key] = $opPermission;
 		}
 		$userPermissions = $this->getCalculator()->run($uid);
-		$intersect = array_intersect_assoc($unsafePermissions,$userPermissions);
+		$intersect = array_intersect_key($unsafePermissions,$userPermissions);
 		
 		return empty($intersect) ? false : array('operation'=>$op,'permission'=>$intersect);
 	}

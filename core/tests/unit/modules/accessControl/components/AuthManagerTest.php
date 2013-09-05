@@ -19,6 +19,15 @@ class AuthManagerTest extends CDbTestCase{
 		$this->auth = Yii::app()->getAuthManager();
 	}
 	
+	public function testCheckAccess(){
+		$operation = array(
+				'module' => 'access3',
+				'controller' => 'access3',
+				'action' => 'access3'
+		);
+		$r = $this->auth->checkAccess($operation,35);
+	}
+	
 	public function testGenerate(){
 		self::$objects[AuthManager::ROLE][] = $this->auth->generate(AuthManager::ROLE,array('role_name' => 'phpunit test parent role'));
 		self::$objects[AuthManager::ROLE][] = $this->auth->generate(AuthManager::ROLE,array('fid'=>Yii::app()->db->lastInsertID,'role_name'=>'phpunit test child role'));
@@ -94,4 +103,6 @@ class AuthManagerTest extends CDbTestCase{
 		$calculator = $this->auth->getCalculator();
 		$this->assertInstanceOf('RightCalculator',$calculator);
 	}
+	
+	
 }
