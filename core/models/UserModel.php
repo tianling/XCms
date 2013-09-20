@@ -67,7 +67,7 @@ class UserModel extends SingleInheritanceModel
 		// NOTE: you should only define rules for those attributes that
 		// will receive user inputs.
 		return array(
-			array('nickname, password', 'required','on'=>'create'),
+			array('nickname, password', 'required',),
 			array('last_login_time, last_login_ip', 'required', 'on'=>'update'),
 			array('locked', 'numerical', 'integerOnly'=>true),
 			array('nickname', 'length', 'max'=>20),
